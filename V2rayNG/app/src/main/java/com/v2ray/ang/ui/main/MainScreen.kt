@@ -189,7 +189,10 @@ fun MainScreen(
                     displayText = displayText,
                     isRunning = isRunning,
                     isDarkTheme = isDarkTheme,
-                    onAction = onAction
+                    ruBypassEnabled = uiState.ruBypassEnabled,
+                    perAppProxyEnabled = uiState.perAppProxyEnabled,
+                    onAction = onAction,
+                    onChooseApps = { onNavigate(MainDestination.PerAppProxy) }
                 )
             },
             floatingActionButton = {},

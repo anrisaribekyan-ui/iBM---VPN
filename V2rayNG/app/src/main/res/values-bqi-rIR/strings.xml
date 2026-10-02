@@ -561,4 +561,13 @@
     <string name="connection_test_empty_message">دووسمندی نؽ</string>
     <string name="value_unknown">نا موشخس</string>
 
+    <!-- YOUdkinVPN quick settings -->
+    <string name="quick_ru_bypass">Bypass .ru</string>
+    <string name="quick_ru_bypass_on">Russian sites go direct</string>
+    <string name="quick_ru_bypass_off">All traffic through VPN</string>
+    <string name="quick_app_vpn">VPN for apps</string>
+    <string name="quick_app_vpn_on">Only selected apps</string>
+    <string name="quick_app_vpn_off">All apps</string>
+    <string name="quick_app_vpn_choose">Choose</string>
+
 </resources>

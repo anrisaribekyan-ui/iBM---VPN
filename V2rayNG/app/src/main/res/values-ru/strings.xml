@@ -565,4 +565,13 @@
     <string name="connection_test_empty_message">подробности отсутствуют</string>
     <string name="value_unknown">неизвестно</string>
 
+    <!-- YOUdkinVPN quick settings -->
+    <string name="quick_ru_bypass">Обход .ru</string>
+    <string name="quick_ru_bypass_on">Российские сайты — напрямую</string>
+    <string name="quick_ru_bypass_off">Весь трафик через VPN</string>
+    <string name="quick_app_vpn">VPN для приложений</string>
+    <string name="quick_app_vpn_on">Только выбранные приложения</string>
+    <string name="quick_app_vpn_off">Все приложения</string>
+    <string name="quick_app_vpn_choose">Выбрать</string>
+
 </resources>

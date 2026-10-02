@@ -16,6 +16,7 @@ import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.dto.entities.ServerAffiliationInfo
 import com.v2ray.ang.dto.entities.SubscriptionCache
 import com.v2ray.ang.dto.entities.SubscriptionItem
+import com.v2ray.ang.enums.RoutingType
 import com.v2ray.ang.extension.serializable
 import com.v2ray.ang.handler.AngConfigManager
 import com.v2ray.ang.handler.AppLocaleManager
@@ -121,6 +122,23 @@ class MainRepository(
 
     override fun getDoubleColumnDisplay(): Boolean =
         MmkvManager.decodeSettingsBool(AppConfig.PREF_DOUBLE_COLUMN_DISPLAY, false)
+
+    override fun getRuBypassEnabled(): Boolean =
+        MmkvManager.decodeSettingsBool(AppConfig.PREF_RU_BYPASS, true)
+
+    override fun setRuBypassEnabled(enabled: Boolean) {
+        val preset = if (enabled) RoutingType.WHITE_RUSSIA else RoutingType.GLOBAL
+        SettingsManager.resetRoutingRulesetsFromPresets(app, preset)
+        MmkvManager.encodeSettings(AppConfig.PREF_RU_BYPASS, enabled)
+    }
+
+    override fun getPerAppProxyEnabled(): Boolean =
+        MmkvManager.decodeSettingsBool(AppConfig.PREF_PER_APP_PROXY, false)
+
+    override fun setPerAppProxyEnabled(enabled: Boolean) {
+        if (enabled) MmkvManager.encodeSettings(AppConfig.PREF_BYPASS_APPS, false)
+        MmkvManager.encodeSettings(AppConfig.PREF_PER_APP_PROXY, enabled)
+    }
 
     override fun isGroupAllDisplayEnabled(): Boolean =
         MmkvManager.decodeSettingsBool(AppConfig.PREF_GROUP_ALL_DISPLAY)

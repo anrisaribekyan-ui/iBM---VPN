@@ -559,4 +559,13 @@
     <string name="connection_test_empty_message">无详细信息</string>
     <string name="value_unknown">未知</string>
 
+    <!-- YOUdkinVPN quick settings -->
+    <string name="quick_ru_bypass">绕过 .ru</string>
+    <string name="quick_ru_bypass_on">俄罗斯网站直连</string>
+    <string name="quick_ru_bypass_off">所有流量走 VPN</string>
+    <string name="quick_app_vpn">分应用 VPN</string>
+    <string name="quick_app_vpn_on">仅所选应用</string>
+    <string name="quick_app_vpn_off">所有应用</string>
+    <string name="quick_app_vpn_choose">选择</string>
+
 </resources>

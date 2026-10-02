@@ -46,7 +46,10 @@ fun MainBottomBar(
     displayText: String,
     isRunning: Boolean,
     isDarkTheme: Boolean,
-    onAction: (MainAction) -> Unit
+    ruBypassEnabled: Boolean,
+    perAppProxyEnabled: Boolean,
+    onAction: (MainAction) -> Unit,
+    onChooseApps: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val rotationAnim = remember { Animatable(0f) }
@@ -62,7 +65,6 @@ fun MainBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface)
-                .clickable(onClick = { onAction(MainAction.TestCurrentServer) })
                 .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
             AppDivider()
@@ -70,6 +72,7 @@ fun MainBottomBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp)
+                    .clickable(onClick = { onAction(MainAction.TestCurrentServer) })
                     .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -82,6 +85,13 @@ fun MainBottomBar(
                     }
                 )
             }
+            AppDivider()
+            MainQuickSettings(
+                ruBypassEnabled = ruBypassEnabled,
+                perAppProxyEnabled = perAppProxyEnabled,
+                onAction = onAction,
+                onChooseApps = onChooseApps
+            )
         }
         FloatingActionButton(
             onClick = {

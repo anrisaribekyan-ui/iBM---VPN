@@ -81,7 +81,9 @@ class MainViewModel(
             selectedGroupId = dataSource.getSelectedSubscriptionId(),
             selectedGuid = dataSource.getSelectServer(),
             confirmRemove = dataSource.getConfirmRemove(),
-            doubleColumnDisplay = dataSource.getDoubleColumnDisplay()
+            doubleColumnDisplay = dataSource.getDoubleColumnDisplay(),
+            ruBypassEnabled = dataSource.getRuBypassEnabled(),
+            perAppProxyEnabled = dataSource.getPerAppProxyEnabled()
         )
     )
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -291,6 +293,8 @@ class MainViewModel(
             is MainAction.Search -> filterConfig(action.query)
             is MainAction.ImportBatchConfig -> importBatchConfig(action.configText)
             MainAction.LocateHandled -> consumeLocateTarget()
+            is MainAction.SetRuBypass -> setRuBypass(action.enabled)
+            is MainAction.SetPerAppProxy -> setPerAppProxy(action.enabled)
             is MainAction.ShareQRCode -> {
                 val bitmap = dataSource.share2QRCode(action.guid)
                 _uiState.update { it.copy(shareQRCodeBitmap = bitmap) }
@@ -336,8 +340,42 @@ class MainViewModel(
         _uiState.update {
             it.copy(
                 confirmRemove = dataSource.getConfirmRemove(),
-                doubleColumnDisplay = dataSource.getDoubleColumnDisplay()
+                doubleColumnDisplay = dataSource.getDoubleColumnDisplay(),
+                ruBypassEnabled = dataSource.getRuBypassEnabled(),
+                perAppProxyEnabled = dataSource.getPerAppProxyEnabled()
             )
+        }
+    }
+
+    // ---------- Quick settings (under the connect button) ----------
+    private var quickSettingsJob: Job? = null
+
+    private fun setRuBypass(enabled: Boolean) {
+        _uiState.update { it.copy(ruBypassEnabled = enabled) }
+        applyQuickSetting("ru bypass") { dataSource.setRuBypassEnabled(enabled) }
+    }
+
+    private fun setPerAppProxy(enabled: Boolean) {
+        _uiState.update { it.copy(perAppProxyEnabled = enabled) }
+        applyQuickSetting("per-app proxy") { dataSource.setPerAppProxyEnabled(enabled) }
+    }
+
+    /** Persists a quick setting on IO, then restarts the running service so the change takes effect. */
+    private fun applyQuickSetting(name: String, write: () -> Unit) {
+        val previous = quickSettingsJob
+        quickSettingsJob = viewModelScope.launch(ioDispatcher) {
+            previous?.join()
+            try {
+                write()
+                if (_uiState.value.isRunning) {
+                    dataSource.sendMsg2Service(AppConfig.MSG_STATE_RESTART, "")
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                LogUtil.e(AppConfig.TAG, "Main quick setting failed: $name", error)
+                refreshUiSettings()
+            }
         }
     }
 

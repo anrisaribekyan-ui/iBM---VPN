@@ -26,6 +26,8 @@ data class MainUiState(
     val locateTarget: LocateTarget? = null,
     val confirmRemove: Boolean = false,
     val doubleColumnDisplay: Boolean = false,
+    val ruBypassEnabled: Boolean = true,
+    val perAppProxyEnabled: Boolean = false,
     val shareQRCodeBitmap: android.graphics.Bitmap? = null
 )
 
@@ -52,6 +54,8 @@ sealed interface MainAction {
     data object ImportConfigLocal : MainAction
     data class ImportManually(val type: Int) : MainAction
     data object RestartService : MainAction
+    data class SetRuBypass(val enabled: Boolean) : MainAction
+    data class SetPerAppProxy(val enabled: Boolean) : MainAction
     data object LocateSelectedServer : MainAction
 
     data class SelectGroup(val groupId: String) : MainAction

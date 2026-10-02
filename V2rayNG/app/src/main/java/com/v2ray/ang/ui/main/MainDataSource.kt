@@ -22,6 +22,13 @@ interface MainDataSource : Closeable {
     fun getDoubleColumnDisplay(): Boolean
     fun isGroupAllDisplayEnabled(): Boolean
 
+    fun getRuBypassEnabled(): Boolean
+    /** Persists the toggle and replaces unlocked routing rules with the matching preset. Blocking: call on IO. */
+    fun setRuBypassEnabled(enabled: Boolean)
+    fun getPerAppProxyEnabled(): Boolean
+    /** Persists per-app VPN; enabling selects proxy mode so only the chosen apps use the VPN. Blocking: call on IO. */
+    fun setPerAppProxyEnabled(enabled: Boolean)
+
     fun getString(resId: Int): String
     fun getString(resId: Int, vararg formatArgs: Any): String
 
