@@ -16,6 +16,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      HAS_KEYSTORE: ${{ secrets.APP_KEYSTORE_BASE64 != '' }}
 
     steps:
     - name: Checkout code
@@ -87,11 +89,18 @@ jobs:
         java-version: '21'
 
     - name: Decode Keystore
+      if: ${{ env.HAS_KEYSTORE == 'true' }}
       uses: timheuer/base64-to-file@v2.0.0
       id: android_keystore
       with:
         fileName: "android_keystore.jks"
         encodedString: ${{ secrets.APP_KEYSTORE_BASE64 }}
+
+    - name: Ensure debug keystore
+      if: ${{ env.HAS_KEYSTORE != 'true' }}
+      run: |
+        mkdir -p $HOME/.android
+        [ -f $HOME/.android/debug.keystore ] || keytool -genkeypair -keystore $HOME/.android/debug.keystore -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
     - name: Build APK
       run: |
@@ -99,7 +108,12 @@ jobs:
         echo "sdk.dir=${ANDROID_HOME}" > local.properties
         chmod 755 gradlew
         ./gradlew licenseFdroidReleaseReport
-        ./gradlew assembleRelease -Pandroid.injected.signing.store.file=${{ steps.android_keystore.outputs.filePath }} -Pandroid.injected.signing.store.password=${{ secrets.APP_KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.APP_KEYSTORE_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.APP_KEY_PASSWORD }}
+        if [ "${{ env.HAS_KEYSTORE }}" = "true" ]; then
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=${{ steps.android_keystore.outputs.filePath }} -Pandroid.injected.signing.store.password=${{ secrets.APP_KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.APP_KEYSTORE_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.APP_KEY_PASSWORD }}
+        else
+          # No signing secrets yet: sign the release build with the debug key so the APK still installs
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$HOME/.android/debug.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=androiddebugkey -Pandroid.injected.signing.key.password=android
+        fi
     
     - name: Upload arm64-v8a APK
       uses: actions/upload-artifact@v7
