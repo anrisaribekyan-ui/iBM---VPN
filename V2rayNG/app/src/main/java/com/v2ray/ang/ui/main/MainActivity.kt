@@ -108,6 +108,8 @@ class MainActivity : HelperBaseComponentActivity() {
                     MainAction.TestCurrentServer -> handleLayoutTestClick()
                     MainAction.ImportQRcode -> importQRcode()
                     MainAction.ImportClipboard -> importClipboard()
+                    MainAction.ImportClipboardToDefaultGroup ->
+                        importClipboard(AppConfig.DEFAULT_SUBSCRIPTION_ID)
                     MainAction.ImportConfigLocal -> importConfigLocal()
                     is MainAction.ImportManually -> importManually(action.type)
                     MainAction.RestartService -> LauncherManager.restartServiceOrStart(this, ::requestServiceStart)
@@ -222,10 +224,10 @@ class MainActivity : HelperBaseComponentActivity() {
         }
     }
 
-    private fun importClipboard() {
+    private fun importClipboard(groupId: String? = null) {
         try {
             val text = Utils.getClipboard(this)
-            mainViewModel.onAction(MainAction.ImportBatchConfig(text))
+            mainViewModel.onAction(MainAction.ImportBatchConfig(text, groupId))
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "Failed to import config from clipboard", e)
         }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">YOUdkinVPN</string>
+    <string name="app_name" translatable="false">iBM</string>
     <string name="app_widget_name">開關</string>
     <string name="app_tile_name">開關</string>
     <string name="app_tile_first_use">首次使用此功能，請使用此應用程式新增伺服器</string>
@@ -14,7 +14,7 @@
     <string name="pull_down_to_refresh">請下拉重新整理！</string>
 
     <!-- Notifications -->
-    <string name="notification_channel_service">YOUdkinVPN 服務</string>
+    <string name="notification_channel_service">iBM 服務</string>
     <string name="notification_channel_subscription_updates">訂閱更新</string>
     <string name="notification_channel_connection_checks">連線檢查</string>
     <string name="notification_action_stop_v2ray">停止</string>
@@ -559,7 +559,7 @@
     <string name="connection_test_empty_message">沒有詳細資訊</string>
     <string name="value_unknown">未知</string>
 
-    <!-- YOUdkinVPN quick settings -->
+    <!-- iBM quick settings -->
     <string name="quick_ru_bypass">繞過 .ru</string>
     <string name="quick_ru_bypass_on">俄羅斯網站直連</string>
     <string name="quick_ru_bypass_off">所有流量走 VPN</string>
@@ -567,7 +567,7 @@
     <string name="quick_app_vpn_on">僅所選應用</string>
     <string name="quick_app_vpn_off">所有應用</string>
     <string name="quick_app_vpn_choose">選擇</string>
-    <!-- YOUdkinVPN main screen -->
+    <!-- iBM main screen -->
     <string name="status_connected_title">已連線</string>
     <string name="status_disconnected_title">未連線</string>
     <string name="status_no_server">未選擇伺服器</string>

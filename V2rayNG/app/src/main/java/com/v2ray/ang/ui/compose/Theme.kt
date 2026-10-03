@@ -3,6 +3,7 @@ package com.v2ray.ang.ui.compose
 import android.app.Activity
 import android.content.res.Configuration
 import android.os.Build
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,47 +43,48 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 // ---------------------------------------------------------------------------------------------
-// YOUdkinVPN design tokens: black + red, Apple-style neutrals.
+// iBM design tokens: white + iOS blue, Apple-style neutrals.
 // ---------------------------------------------------------------------------------------------
 
-/** Brand reds. */
+/** Brand accents (iOS blue family) plus latency colours. */
 object BrandColors {
-    val Red = Color(0xFFFF3347)          // primary accent (dark)
-    val RedDeep = Color(0xFFD90A24)      // pressed / gradient end
-    val RedLight = Color(0xFFE5172C)     // primary accent on light backgrounds
-    val RedGlow = Color(0xFFFF1F3D)      // ambient glow
+    val Blue = Color(0xFF0A84FF)         // primary accent (dark): iOS system blue, dark variant
+    val BlueDeep = Color(0xFF0062CC)     // pressed / gradient end
+    val BlueLight = Color(0xFF007AFF)    // primary accent on light backgrounds: iOS system blue
+    val BlueGlow = Color(0xFF5AC8FA)     // ambient glow: iOS system sky
+    val BluePale = Color(0xFFE5F1FF)     // pale blue container
     val Green = Color(0xFF32D74B)        // good latency
     val Amber = Color(0xFFFFB340)        // medium latency
 }
 
 private val LightColor = lightColorScheme(
-    primary = BrandColors.RedLight,
+    primary = BrandColors.BlueLight,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFFFE3E5),
-    onPrimaryContainer = Color(0xFF5C0010),
-    secondary = BrandColors.RedLight,
+    primaryContainer = Color(0xFFE5F1FF),
+    onPrimaryContainer = Color(0xFF003A80),
+    secondary = BrandColors.BlueLight,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFFFE3E5),
-    onSecondaryContainer = Color(0xFF5C0010),
-    tertiary = Color(0xFF1C1C1E),
-    onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFE5E5EA),
-    onTertiaryContainer = Color(0xFF1C1C1E),
+    secondaryContainer = Color(0xFFE5F1FF),
+    onSecondaryContainer = Color(0xFF003A80),
+    tertiary = Color(0xFF5AC8FA),
+    onTertiary = Color(0xFF00334D),
+    tertiaryContainer = Color(0xFFE0F5FF),
+    onTertiaryContainer = Color(0xFF00334D),
     error = Color(0xFFD70015),
     errorContainer = Color(0xFFFFDAD6),
     onError = Color.White,
     onErrorContainer = Color(0xFF410002),
     background = Color(0xFFF2F2F7),
     onBackground = Color(0xFF000000),
-    surface = Color(0xFFF2F2F7),
+    surface = Color.White,
     onSurface = Color(0xFF000000),
-    surfaceVariant = Color(0xFFE5E5EA),
-    onSurfaceVariant = Color(0xFF6C6C70),
+    surfaceVariant = Color(0xFFE5EDF7),
+    onSurfaceVariant = Color(0xFF5F6B7A),
     outline = Color(0xFFC6C6C8),
     outlineVariant = Color(0xFFE5E5EA),
     inverseSurface = Color(0xFF1C1C1E),
     inverseOnSurface = Color(0xFFF2F2F7),
-    inversePrimary = BrandColors.Red,
+    inversePrimary = BrandColors.Blue,
     scrim = Color.Black,
     surfaceTint = Color.Transparent,
     surfaceBright = Color.White,
@@ -90,23 +92,23 @@ private val LightColor = lightColorScheme(
     surfaceContainerLowest = Color.White,
     surfaceContainerLow = Color.White,
     surfaceContainer = Color.White,
-    surfaceContainerHigh = Color(0xFFF9F9FB),
-    surfaceContainerHighest = Color(0xFFE9E9EE),
+    surfaceContainerHigh = Color(0xFFF7F9FC),
+    surfaceContainerHighest = Color(0xFFEAF0F8),
 )
 
 private val DarkColor = darkColorScheme(
-    primary = BrandColors.Red,
+    primary = BrandColors.Blue,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFF3D0710),
-    onPrimaryContainer = Color(0xFFFFD9DC),
-    secondary = BrandColors.Red,
+    primaryContainer = Color(0xFF0A2A4D),
+    onPrimaryContainer = Color(0xFFD6E9FF),
+    secondary = BrandColors.Blue,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFF3D0710),
-    onSecondaryContainer = Color(0xFFFFD9DC),
-    tertiary = Color(0xFFF5F5F7),
+    secondaryContainer = Color(0xFF0A2A4D),
+    onSecondaryContainer = Color(0xFFD6E9FF),
+    tertiary = Color(0xFF64D2FF),
     onTertiary = Color.Black,
-    tertiaryContainer = Color(0xFF2C2C2E),
-    onTertiaryContainer = Color(0xFFF5F5F7),
+    tertiaryContainer = Color(0xFF12303F),
+    onTertiaryContainer = Color(0xFFD6F2FF),
     error = Color(0xFFFF6961),
     errorContainer = Color(0xFF5C0A0A),
     onError = Color.Black,
@@ -121,7 +123,7 @@ private val DarkColor = darkColorScheme(
     outlineVariant = Color(0xFF2C2C2E),
     inverseSurface = Color(0xFFF5F5F7),
     inverseOnSurface = Color.Black,
-    inversePrimary = BrandColors.RedLight,
+    inversePrimary = BrandColors.BlueLight,
     scrim = Color.Black,
     surfaceTint = Color.Transparent,
     surfaceBright = Color(0xFF2C2C2E),
@@ -136,9 +138,9 @@ private val DarkColor = darkColorScheme(
 // Semantic Colors
 val colorPing = BrandColors.Green
 val colorPingRed = Color(0xFFFF453A)
-val colorConfigType = BrandColors.Red
-val colorFabActive = BrandColors.Red
-val colorFabInactiveLight = Color(0xFFC7C7CC)
+val colorConfigType = BrandColors.Blue
+val colorFabActive = BrandColors.Blue
+val colorFabInactiveLight = Color(0xFFD1D1D6)
 val colorFabInactiveDark = Color(0xFF2C2C2E)
 val dividerColorLight = Color(0x1F3C3C43) // iOS separator, light
 val dividerColorDark = Color(0x29FFFFFF)  // hairline on black
@@ -200,8 +202,8 @@ val AppShapes = Shapes(
 
 // ---------------------------------------------------------------------------------------------
 
-/** YOUdkinVPN branding: dark black-red theme by default, system dynamic colors off. */
-const val DEFAULT_UI_MODE_NIGHT = "2"
+/** iBM branding: light white-blue theme by default ("0" system, "1" light, "2" dark), dynamic colors off. */
+const val DEFAULT_UI_MODE_NIGHT = "1"
 const val DEFAULT_DYNAMIC_COLOR = false
 
 object ThemeManager {
@@ -215,9 +217,24 @@ object ThemeManager {
     )
     val dynamicColorEnabled: StateFlow<Boolean> = _dynamicColorEnabled.asStateFlow()
 
+    /**
+     * Mirrors the stored mode into AppCompat so the window background (values / values-night)
+     * matches the app choice before Compose draws, e.g. light default on a dark-mode phone.
+     */
+    private fun applyNightMode(mode: String) {
+        AppCompatDelegate.setDefaultNightMode(
+            when (mode) {
+                "1" -> AppCompatDelegate.MODE_NIGHT_NO
+                "2" -> AppCompatDelegate.MODE_NIGHT_YES
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+        )
+    }
+
     fun setThemeMode(mode: String) {
         MmkvManager.encodeSettings(AppConfig.PREF_UI_MODE_NIGHT, mode)
         _themeMode.value = mode
+        applyNightMode(mode)
     }
 
     fun setDynamicColorEnabled(enabled: Boolean) {
@@ -228,6 +245,7 @@ object ThemeManager {
     fun refresh() {
         _themeMode.value =
             MmkvManager.decodeSettingsString(AppConfig.PREF_UI_MODE_NIGHT, DEFAULT_UI_MODE_NIGHT) ?: DEFAULT_UI_MODE_NIGHT
+        applyNightMode(_themeMode.value)
         _dynamicColorEnabled.value =
             MmkvManager.decodeSettingsBool(AppConfig.PREF_DYNAMIC_COLOR, DEFAULT_DYNAMIC_COLOR)
     }

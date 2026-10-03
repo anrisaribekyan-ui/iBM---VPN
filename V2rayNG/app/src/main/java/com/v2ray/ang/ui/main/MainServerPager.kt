@@ -426,7 +426,7 @@ private fun ProtocolPill(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PingLabel(delayMillis: Long) {
+internal fun PingLabel(delayMillis: Long) {
     val color = when {
         delayMillis < 0L -> colorPingRed
         delayMillis < 300L -> colorPing

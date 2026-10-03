@@ -1,5 +1,6 @@
 package com.v2ray.ang.ui.compose
 
+import android.os.Build
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.ExperimentalHazeApi
@@ -40,7 +42,7 @@ import dev.chrisbanes.haze.glass.hazeGlass
 import dev.chrisbanes.haze.hazeSource
 
 /*
- * YOUdkinVPN liquid-glass surfaces.
+ * iBM glass surfaces (white + blue, iOS 27 style frosted glass).
  *
  * Glass uses Haze's iOS 27-calibrated Glass material (refraction, diffusion, dark edge and
  * specular highlight). Those APIs are marked @ExperimentalHazeApi (warning level), so every use
@@ -77,24 +79,39 @@ fun Modifier.glassSurface(
             }
         }
     }
-    return this.hazeGlass(
+    val dark = LocalDarkTheme.current
+    // Light theme: soft diffuse blue-tinted shadow and a faint white/light-blue edge highlight
+    // instead of a hard border. Dark theme keeps Haze's own lighting only.
+    val lift = if (dark || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) this else this
+        .shadow(
+            elevation = 14.dp,
+            shape = shape,
+            clip = false,
+            ambientColor = GlassShadowColor,
+            spotColor = GlassShadowColor,
+        )
+    val glass = lift.hazeGlass(
         input = HazeInput.Sources(state),
         style = style,
         interactionSource = interactionSource,
         interactionTransformTarget = GlassTransformTarget.MaterialAndContent,
     )
+    return if (dark) glass else glass.border(1.dp, GlassEdgeLight, shape)
 }
+
+private val GlassShadowColor = Color(0xFF3A6FB5).copy(alpha = 0.22f)
+private val GlassEdgeLight = Color.White.copy(alpha = 0.85f)
 
 /** Default glass tint for the current theme. */
 @Composable
 fun glassTint(): Color =
     if (LocalDarkTheme.current) Color(0xFF0A0A0C).copy(alpha = 0.42f)
-    else Color.White.copy(alpha = 0.55f)
+    else Color.White.copy(alpha = 0.70f)
 
 /** Hairline that defines a glass or card edge on black (iOS-style 0.5dp separator). */
 @Composable
 fun Modifier.hairline(shape: RoundedCornerShape): Modifier {
-    val color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.09f) else Color.Black.copy(alpha = 0.06f)
+    val color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.09f) else BrandColors.BlueLight.copy(alpha = 0.10f)
     return this.border(0.5.dp, color, shape)
 }
 
@@ -107,10 +124,11 @@ fun Modifier.contentCard(shape: RoundedCornerShape, selected: Boolean = false): 
     val dark = LocalDarkTheme.current
     val fill by animateColorAsState(
         targetValue = when {
-            selected && dark -> BrandColors.Red.copy(alpha = 0.12f)
-            selected -> BrandColors.RedLight.copy(alpha = 0.08f)
+            selected && dark -> BrandColors.Blue.copy(alpha = 0.12f)
+            // Light cards sit on an elevation shadow, so their fill must be opaque.
+            selected -> BrandColors.BlueLight.copy(alpha = 0.10f).compositeOver(Color.White)
             dark -> Color.White.copy(alpha = 0.055f)
-            else -> Color.White.copy(alpha = 0.92f)
+            else -> Color.White
         },
         animationSpec = tween(220),
         label = "cardFill"
@@ -119,19 +137,30 @@ fun Modifier.contentCard(shape: RoundedCornerShape, selected: Boolean = false): 
         targetValue = when {
             selected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
             dark -> Color.White.copy(alpha = 0.08f)
-            else -> Color.Black.copy(alpha = 0.05f)
+            else -> BrandColors.BlueLight.copy(alpha = 0.07f)
         },
         animationSpec = tween(220),
         label = "cardEdge"
     )
     return this
+        .then(
+            if (dark) Modifier else Modifier.shadow(
+                elevation = 8.dp,
+                shape = shape,
+                clip = false,
+                ambientColor = CardShadowColor,
+                spotColor = CardShadowColor,
+            )
+        )
         .clip(shape)
         .background(fill)
         .border(if (selected) 1.dp else 0.5.dp, edge, shape)
 }
 
+private val CardShadowColor = Color(0xFF3A6FB5).copy(alpha = 0.14f)
+
 /**
- * Ambient background: true black with soft red light. Glows brighter while connected so the
+ * Ambient background: near-white (black in dark theme) with a soft blue radial glow. Glows brighter while connected so the
  * glass surfaces above it visibly react to the VPN state.
  */
 @Composable
@@ -146,8 +175,8 @@ fun AmbientBackground(
         animationSpec = tween(900),
         label = "ambient"
     )
-    val base = if (dark) Color.Black else Color(0xFFF2F2F7)
-    val glow = BrandColors.RedGlow
+    val base = if (dark) Color.Black else Color(0xFFF7F9FD)
+    val glow = BrandColors.BlueGlow
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -157,21 +186,21 @@ fun AmbientBackground(
                 val h = size.height
                 drawRect(
                     brush = Brush.radialGradient(
-                        colors = listOf(glow.copy(alpha = (if (dark) 0.34f else 0.16f) * intensity), Color.Transparent),
+                        colors = listOf(glow.copy(alpha = (if (dark) 0.34f else 0.24f) * intensity), Color.Transparent),
                         center = Offset(w * 0.12f, h * 0.06f),
                         radius = w * 1.05f
                     )
                 )
                 drawRect(
                     brush = Brush.radialGradient(
-                        colors = listOf(glow.copy(alpha = (if (dark) 0.42f else 0.18f) * intensity), Color.Transparent),
+                        colors = listOf(glow.copy(alpha = (if (dark) 0.42f else 0.26f) * intensity), Color.Transparent),
                         center = Offset(w * 0.9f, h * 0.98f),
                         radius = w * 1.15f
                     )
                 )
                 drawRect(
                     brush = Brush.radialGradient(
-                        colors = listOf(Color(0xFF7A0A1A).copy(alpha = (if (dark) 0.28f else 0.06f) * intensity), Color.Transparent),
+                        colors = listOf(Color(0xFF0062CC).copy(alpha = (if (dark) 0.28f else 0.07f) * intensity), Color.Transparent),
                         center = Offset(w * 0.55f, h * 0.5f),
                         radius = w * 0.9f
                     )
@@ -194,7 +223,7 @@ fun AppSwitch(
 ) {
     val dark = LocalDarkTheme.current
     val onColor = MaterialTheme.colorScheme.primary
-    val offColor = if (dark) Color(0xFF39393D) else Color(0xFFE9E9EA)
+    val offColor = if (dark) Color(0xFF39393D) else Color(0xFFE5E5EA)
     val track by animateColorAsState(
         targetValue = if (checked) onColor else offColor,
         animationSpec = tween(200),

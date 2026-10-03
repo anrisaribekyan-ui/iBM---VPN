@@ -49,10 +49,14 @@ sealed interface MainAction {
     data object RemoveInvalidServers : MainAction
     data object SortByTestResults : MainAction
     data object UpdateSubscriptions : MainAction
+    /** Updates every subscription, regardless of the group currently selected. */
+    data object UpdateAllSubscriptions : MainAction
     data object ExportAll : MainAction
 
     data object ImportQRcode : MainAction
     data object ImportClipboard : MainAction
+    /** Clipboard import into the default group, which a subscription refresh never wipes. */
+    data object ImportClipboardToDefaultGroup : MainAction
     data object ImportConfigLocal : MainAction
     data class ImportManually(val type: Int) : MainAction
     data object RestartService : MainAction
@@ -70,7 +74,11 @@ sealed interface MainAction {
     data class ShareFullContent(val guid: String) : MainAction
     data object DismissQRCodeDialog : MainAction
 
-    data class ImportBatchConfig(val configText: String) : MainAction
+    data class ImportBatchConfig(
+        val configText: String,
+        /** Target group id; null imports into the currently selected group. */
+        val groupId: String? = null
+    ) : MainAction
 
     data object LocateHandled : MainAction
 }

@@ -47,6 +47,14 @@ enum class MainDestination(@DrawableRes val iconRes: Int, @StringRes val labelRe
     About(R.drawable.ic_about_24dp, R.string.title_about)
 }
 
+/** Quick actions at the top of the drawer; they replace the controls removed from the main screen. */
+enum class MainDrawerAction(@DrawableRes val iconRes: Int, @StringRes val labelRes: Int) {
+    UpdateSubscriptions(R.drawable.ic_cloud_download_24dp, R.string.ibm_update_subscription),
+    ImportClipboard(R.drawable.ic_copy, R.string.ibm_import_clipboard),
+    Import(R.drawable.ic_add_24dp, R.string.ibm_import),
+    Servers(R.drawable.ic_shield_24dp, R.string.ibm_servers)
+}
+
 private val primaryDrawerItems = listOf(
     MainDestination.Subscriptions,
     MainDestination.PerAppProxy,
@@ -55,7 +63,7 @@ private val primaryDrawerItems = listOf(
     MainDestination.Settings
 )
 
-// YOUdkinVPN: upstream promotion and v2rayNG self-update entries are hidden in this build.
+// iBM: upstream promotion and v2rayNG self-update entries are hidden in this build.
 private val drawerItems = primaryDrawerItems + listOf(
     MainDestination.Logcat,
     MainDestination.BackupRestore,
@@ -63,7 +71,11 @@ private val drawerItems = primaryDrawerItems + listOf(
 )
 
 @Composable
-fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) -> Unit) {
+fun MainDrawerContent(
+    drawerState: DrawerState,
+    onAction: (MainDrawerAction) -> Unit,
+    onNavigate: (MainDestination) -> Unit
+) {
     val drawerScrollState = rememberScrollState()
 
     ModalDrawerSheet(
@@ -90,7 +102,7 @@ fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) ->
                     modifier = Modifier
                         .size(52.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFF0B0B0D)),
+                        .background(Color.White),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
@@ -106,38 +118,51 @@ fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) ->
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
+            MainDrawerAction.entries.forEach { item ->
+                DrawerRow(iconRes = item.iconRes, labelRes = item.labelRes, onClick = { onAction(item) })
+            }
+            AppDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
             drawerItems.forEachIndexed { index, item ->
                 if (index == primaryDrawerItems.size) {
                     AppDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
                 }
-                NavigationDrawerItem(
-                    label = { Text(stringResource(item.labelRes), style = MaterialTheme.typography.bodyLarge) },
-                    selected = false,
-                    onClick = { onNavigate(item) },
-                    icon = {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(RoundedCornerShape(9.dp))
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painterResource(item.iconRes),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(19.dp)
-                            )
-                        }
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = NavigationDrawerItemDefaults.colors(
-                        unselectedContainerColor = Color.Transparent,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
+                DrawerRow(iconRes = item.iconRes, labelRes = item.labelRes, onClick = { onNavigate(item) })
             }
         }
     }
+}
+
+@Composable
+private fun DrawerRow(
+    @DrawableRes iconRes: Int,
+    @StringRes labelRes: Int,
+    onClick: () -> Unit
+) {
+    NavigationDrawerItem(
+        label = { Text(stringResource(labelRes), style = MaterialTheme.typography.bodyLarge) },
+        selected = false,
+        onClick = onClick,
+        icon = {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painterResource(iconRes),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(19.dp)
+                )
+            }
+        },
+        shape = RoundedCornerShape(16.dp),
+        colors = NavigationDrawerItemDefaults.colors(
+            unselectedContainerColor = Color.Transparent,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurface
+        ),
+        modifier = Modifier.padding(horizontal = 12.dp)
+    )
 }

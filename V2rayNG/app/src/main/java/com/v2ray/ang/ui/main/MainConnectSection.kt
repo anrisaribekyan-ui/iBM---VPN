@@ -19,17 +19,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -51,77 +53,61 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.v2ray.ang.R
-import com.v2ray.ang.ui.compose.AppDivider
 import com.v2ray.ang.ui.compose.BrandColors
 import com.v2ray.ang.ui.compose.LocalDarkTheme
-import com.v2ray.ang.ui.compose.glassSurface
-import dev.chrisbanes.haze.HazeState
 
-private val PanelShape = RoundedCornerShape(32.dp)
+private val MaxConnectButtonSize = 168.dp
+private val MinConnectButtonSize = 88.dp
 
 /**
- * Floating liquid-glass control panel: connection status, the connect button and the quick
- * settings (bypass .ru, per-app VPN).
+ * Centre of the main screen: the large connect button with a short status line under it.
+ * [statusDetail] carries a transient message (test progress or result) and replaces the hint.
  */
 @Composable
-fun MainBottomBar(
-    hazeState: HazeState,
+fun MainConnectSection(
     isRunning: Boolean,
     statusTitle: String,
-    statusSubtitle: String,
+    statusDetail: String?,
     statusHint: String?,
-    ruBypassEnabled: Boolean,
-    perAppProxyEnabled: Boolean,
-    onAction: (MainAction) -> Unit,
-    onChooseApps: () -> Unit,
+    onToggle: () -> Unit,
+    onTest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(start = 12.dp, end = 12.dp, bottom = 10.dp)
-            .glassSurface(hazeState, PanelShape)
-            .padding(top = 6.dp, bottom = 6.dp)
-    ) {
-        Row(
+    // The button shrinks with the space the parent gives us (landscape, TV, split screen);
+    // if even the minimum size plus status does not fit, the column scrolls.
+    BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.Center) {
+        val buttonSize = minOf(MaxConnectButtonSize, maxHeight * 0.45f)
+            .coerceAtLeast(MinConnectButtonSize)
+        Column(
+            // Padding lives inside the scroll container so the button glow is not clipped.
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 8.dp, end = 14.dp, top = 6.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = buttonSize * 0.45f, vertical = buttonSize * 0.2f),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            StatusBlock(
+            ConnectButton(isRunning = isRunning, onClick = onToggle, buttonSize = buttonSize)
+            Spacer(Modifier.height(if (buttonSize < 120.dp) 12.dp else 28.dp))
+            StatusLine(
                 isRunning = isRunning,
                 title = statusTitle,
-                subtitle = statusSubtitle,
+                detail = statusDetail,
                 hint = statusHint,
-                onTest = { onAction(MainAction.TestCurrentServer) },
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(Modifier.width(12.dp))
-            ConnectButton(
-                isRunning = isRunning,
-                onClick = { onAction(MainAction.ToggleService) }
+                onTest = onTest
             )
         }
-        AppDivider(modifier = Modifier.padding(horizontal = 20.dp))
-        MainQuickSettings(
-            ruBypassEnabled = ruBypassEnabled,
-            perAppProxyEnabled = perAppProxyEnabled,
-            onAction = onAction,
-            onChooseApps = onChooseApps
-        )
     }
 }
 
 @Composable
-private fun StatusBlock(
+private fun StatusLine(
     isRunning: Boolean,
     title: String,
-    subtitle: String,
+    detail: String?,
     hint: String?,
     onTest: () -> Unit,
     modifier: Modifier = Modifier
@@ -138,7 +124,8 @@ private fun StatusBlock(
                 onClickLabel = stringResource(R.string.connection_test_pending),
                 onClick = onTest
             )
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -152,7 +139,7 @@ private fun StatusBlock(
                     .clip(CircleShape)
                     .background(dotColor)
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(10.dp))
             AnimatedContent(
                 targetState = title,
                 transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(160)) },
@@ -167,38 +154,38 @@ private fun StatusBlock(
                 )
             }
         }
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        if (hint != null) {
+        val secondary = detail ?: hint
+        if (secondary != null) {
+            Spacer(Modifier.height(4.dp))
             Text(
-                text = hint,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
+                text = secondary,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (detail != null) {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
+                textAlign = TextAlign.Center,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
         }
     }
 }
 
-/** Large round connect button: quiet glass when off, glowing red when the tunnel is up. */
+/** Large round connect button: quiet glass when off, glowing accent when the tunnel is up. */
 @Composable
 private fun ConnectButton(
     isRunning: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    buttonSize: Dp = 168.dp
 ) {
     val dark = LocalDarkTheme.current
     val haptics = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.9f else 1f,
+        targetValue = if (pressed) 0.93f else 1f,
         animationSpec = spring(dampingRatio = 0.55f, stiffness = 600f),
         label = "connectScale"
     )
@@ -225,14 +212,14 @@ private fun ConnectButton(
 
     Box(
         modifier = Modifier
-            .size(72.dp)
+            .size(buttonSize)
             .scale(scale)
             .drawBehind {
                 if (activeAmount > 0f) {
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                BrandColors.RedGlow.copy(alpha = 0.55f * activeAmount * glowPulse),
+                                BrandColors.BlueGlow.copy(alpha = 0.55f * activeAmount * glowPulse),
                                 Color.Transparent
                             ),
                             center = center,
@@ -248,9 +235,9 @@ private fun ConnectButton(
                 if (activeAmount > 0f) {
                     drawCircle(
                         brush = Brush.linearGradient(
-                            colors = listOf(BrandColors.Red, BrandColors.RedDeep),
-                            start = androidx.compose.ui.geometry.Offset(0f, 0f),
-                            end = androidx.compose.ui.geometry.Offset(size.width, size.height)
+                            colors = listOf(BrandColors.Blue, BrandColors.BlueDeep),
+                            start = Offset(0f, 0f),
+                            end = Offset(size.width, size.height)
                         ),
                         alpha = activeAmount
                     )
@@ -280,7 +267,7 @@ private fun ConnectButton(
             painter = painterResource(R.drawable.ic_power_24dp),
             contentDescription = null,
             tint = iconTint,
-            modifier = Modifier.size(30.dp)
+            modifier = Modifier.size(buttonSize * 0.42f)
         )
     }
 }

@@ -66,7 +66,7 @@ jobs:
       run: |
         cp -r ${{ github.workspace }}/libs ${{ github.workspace }}/V2rayNG/app
 
-    # YOUdkinVPN: build libv2ray from source instead of downloading 2dust's release,
+    # iBM: build libv2ray from source instead of downloading 2dust's release,
     # with Xray-core's "VLESS/Trojan without TLS is prohibited" config check disabled
     # so existing non-TLS server profiles keep working.
     - name: Setup Go
@@ -87,9 +87,9 @@ jobs:
         chmod -R u+w ../xray-core-patched
         F=../xray-core-patched/infra/conf/xray.go
         grep -q '^func validateOutboundTransportSecurity(' "$F"
-        sed -i '/^func validateOutboundTransportSecurity(/a\	return nil // YOUdkinVPN: allow VLESS/Trojan without TLS' "$F"
+        sed -i '/^func validateOutboundTransportSecurity(/a\	return nil // iBM: allow VLESS/Trojan without TLS' "$F"
         grep -n -A1 '^func validateOutboundTransportSecurity(' "$F"
-        grep -q 'return nil // YOUdkinVPN' "$F"
+        grep -q 'return nil // iBM' "$F"
         go mod edit -replace github.com/xtls/xray-core=../xray-core-patched
 
     - name: Build libv2ray

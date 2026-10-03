@@ -8,15 +8,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -24,7 +28,7 @@ import com.v2ray.ang.R
 import com.v2ray.ang.ui.compose.AppSwitch
 
 /**
- * YOUdkinVPN quick settings shown directly under the connect button:
+ * iBM quick settings shown directly under the connect button:
  * bypass Russian sites and per-app VPN with a shortcut to the app picker.
  */
 @Composable
@@ -54,17 +58,29 @@ fun MainQuickSettings(
                 onCheckedChange = { onAction(MainAction.SetPerAppProxy(it)) },
                 modifier = Modifier.weight(1f)
             )
-            Text(
-                text = stringResource(R.string.quick_app_vpn_choose),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
+            Row(
                 modifier = Modifier
                     .padding(end = 14.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f))
                     .clickable(role = Role.Button, onClick = onChooseApps)
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
-            )
+                    .padding(start = 14.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.quick_app_vpn_choose),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Icon(
+                    painter = painterResource(R.drawable.ic_expand_more_24dp),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .rotate(-90f)
+                )
+            }
         }
     }
 }

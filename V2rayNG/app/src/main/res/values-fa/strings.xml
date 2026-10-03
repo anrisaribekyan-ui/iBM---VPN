@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">YOUdkinVPN</string>
+    <string name="app_name" translatable="false">iBM</string>
     <string name="app_widget_name">تعویض</string>
     <string name="app_tile_name">تعویض</string>
     <string name="app_tile_first_use">برای اولین استفاده از این قابلیت، لطفاً ابتدا از داخل برنامه یک سرور اضافه کنید</string>
@@ -14,7 +14,7 @@
     <string name="pull_down_to_refresh">برای بروزرسانی، صفحه را به پایین بکشید!</string>
 
     <!-- Notifications -->
-    <string name="notification_channel_service">سرویس YOUdkinVPN</string>
+    <string name="notification_channel_service">سرویس iBM</string>
     <string name="notification_channel_subscription_updates">به‌روزرسانی اشتراک‌ها</string>
     <string name="notification_channel_connection_checks">بررسی اتصال</string>
     <string name="notification_action_stop_v2ray">توقف</string>
@@ -561,7 +561,7 @@
     <string name="connection_test_empty_message">جزئیاتی در دسترس نیست</string>
     <string name="value_unknown">ناشناخته</string>
 
-    <!-- YOUdkinVPN quick settings -->
+    <!-- iBM quick settings -->
     <string name="quick_ru_bypass">Bypass .ru</string>
     <string name="quick_ru_bypass_on">Russian sites go direct</string>
     <string name="quick_ru_bypass_off">All traffic through VPN</string>
@@ -569,7 +569,7 @@
     <string name="quick_app_vpn_on">Only selected apps</string>
     <string name="quick_app_vpn_off">All apps</string>
     <string name="quick_app_vpn_choose">Choose</string>
-    <!-- YOUdkinVPN main screen -->
+    <!-- iBM main screen -->
     <string name="status_connected_title">Connected</string>
     <string name="status_disconnected_title">Not connected</string>
     <string name="status_no_server">No server selected</string>
