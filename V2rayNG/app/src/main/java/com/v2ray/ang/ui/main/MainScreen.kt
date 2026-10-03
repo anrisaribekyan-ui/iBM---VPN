@@ -101,17 +101,22 @@ fun MainScreen(
     }
 
     // Latency of the selected server comes from the group list the user last browsed.
-    val selectedGroupFlow = remember(uiState.selectedGroupId, mainViewModel) {
-        mainViewModel.serverGroupState(uiState.selectedGroupId)
-    }
-    val selectedGroupState by selectedGroupFlow.collectAsStateWithLifecycle()
-    val selectedDelayMillis = selectedGroupState.rows
-        .firstOrNull { it.guid == selectedGuid }
-        ?.testDelayMillis ?: 0L
-
     val serverFlows = remember(groups, mainViewModel) {
         groups.map { mainViewModel.serversForGroup(it.id) }
     }
+    // Look the selected server up in every group, not only the one last browsed.
+    val selectedDelayMillis by remember(serverFlows, selectedGuid) {
+        if (serverFlows.isEmpty() || selectedGuid == null) {
+            flowOf(0L)
+        } else {
+            combine(serverFlows) { lists ->
+                lists.asSequence()
+                    .flatMap { it.asSequence() }
+                    .firstOrNull { it.guid == selectedGuid }
+                    ?.testDelayMillis ?: 0L
+            }
+        }
+    }.collectAsStateWithLifecycle(initialValue = 0L)
     val hasServers by remember(serverFlows) {
         if (serverFlows.isEmpty()) {
             flowOf(false)
@@ -214,8 +219,8 @@ fun MainScreen(
                 onAction = { item ->
                     scope.launch { drawerState.close() }
                     when (item) {
-                        MainDrawerAction.UpdateSubscriptions -> onAction(MainAction.UpdateSubscriptions)
-                        MainDrawerAction.ImportClipboard -> onAction(MainAction.ImportClipboard)
+                        MainDrawerAction.UpdateSubscriptions -> onAction(MainAction.UpdateAllSubscriptions)
+                        MainDrawerAction.ImportClipboard -> onAction(MainAction.ImportClipboardToDefaultGroup)
                         MainDrawerAction.Import -> showImportDialog = true
                         MainDrawerAction.Servers -> showServerSheet = true
                     }
@@ -248,7 +253,7 @@ fun MainScreen(
 
                 if (showEmptyState) {
                     MainEmptyState(
-                        onAddSubscription = { onAction(MainAction.ImportClipboard) },
+                        onAddSubscription = { onAction(MainAction.ImportClipboardToDefaultGroup) },
                         onOtherImport = { showImportDialog = true },
                         modifier = Modifier
                             .weight(1f)
@@ -268,7 +273,7 @@ fun MainScreen(
                             statusHint = statusHint,
                             onToggle = { onAction(MainAction.ToggleService) },
                             onTest = { onAction(MainAction.TestCurrentServer) },
-                            modifier = Modifier.padding(horizontal = 24.dp)
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                     Column(

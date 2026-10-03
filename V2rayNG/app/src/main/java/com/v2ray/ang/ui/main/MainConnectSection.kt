@@ -19,6 +19,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,8 +27,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,6 +61,9 @@ import com.v2ray.ang.R
 import com.v2ray.ang.ui.compose.BrandColors
 import com.v2ray.ang.ui.compose.LocalDarkTheme
 
+private val MaxConnectButtonSize = 168.dp
+private val MinConnectButtonSize = 88.dp
+
 /**
  * Centre of the main screen: the large connect button with a short status line under it.
  * [statusDetail] carries a transient message (test progress or result) and replaces the hint.
@@ -72,19 +78,28 @@ fun MainConnectSection(
     onTest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        ConnectButton(isRunning = isRunning, onClick = onToggle)
-        Spacer(Modifier.height(28.dp))
-        StatusLine(
-            isRunning = isRunning,
-            title = statusTitle,
-            detail = statusDetail,
-            hint = statusHint,
-            onTest = onTest
-        )
+    // The button shrinks with the space the parent gives us (landscape, TV, split screen);
+    // if even the minimum size plus status does not fit, the column scrolls.
+    BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.Center) {
+        val buttonSize = minOf(MaxConnectButtonSize, maxHeight * 0.45f)
+            .coerceAtLeast(MinConnectButtonSize)
+        Column(
+            // Padding lives inside the scroll container so the button glow is not clipped.
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = buttonSize * 0.45f, vertical = buttonSize * 0.2f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ConnectButton(isRunning = isRunning, onClick = onToggle, buttonSize = buttonSize)
+            Spacer(Modifier.height(if (buttonSize < 120.dp) 12.dp else 28.dp))
+            StatusLine(
+                isRunning = isRunning,
+                title = statusTitle,
+                detail = statusDetail,
+                hint = statusHint,
+                onTest = onTest
+            )
+        }
     }
 }
 

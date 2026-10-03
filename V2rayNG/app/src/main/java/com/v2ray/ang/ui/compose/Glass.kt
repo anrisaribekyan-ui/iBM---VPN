@@ -1,5 +1,6 @@
 package com.v2ray.ang.ui.compose
 
+import android.os.Build
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.ExperimentalHazeApi
@@ -80,7 +82,7 @@ fun Modifier.glassSurface(
     val dark = LocalDarkTheme.current
     // Light theme: soft diffuse blue-tinted shadow and a faint white/light-blue edge highlight
     // instead of a hard border. Dark theme keeps Haze's own lighting only.
-    val lift = if (dark) this else this
+    val lift = if (dark || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) this else this
         .shadow(
             elevation = 14.dp,
             shape = shape,
@@ -123,9 +125,10 @@ fun Modifier.contentCard(shape: RoundedCornerShape, selected: Boolean = false): 
     val fill by animateColorAsState(
         targetValue = when {
             selected && dark -> BrandColors.Blue.copy(alpha = 0.12f)
-            selected -> BrandColors.BlueLight.copy(alpha = 0.10f)
+            // Light cards sit on an elevation shadow, so their fill must be opaque.
+            selected -> BrandColors.BlueLight.copy(alpha = 0.10f).compositeOver(Color.White)
             dark -> Color.White.copy(alpha = 0.055f)
-            else -> Color.White.copy(alpha = 0.94f)
+            else -> Color.White
         },
         animationSpec = tween(220),
         label = "cardFill"

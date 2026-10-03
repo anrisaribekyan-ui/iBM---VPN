@@ -290,13 +290,14 @@ class MainViewModel(
             MainAction.RemoveDuplicateServers -> removeDuplicateServerAsync()
             MainAction.RemoveInvalidServers -> removeInvalidServerAsync()
             MainAction.SortByTestResults -> sortByTestResultsAsync()
-            MainAction.UpdateSubscriptions -> importConfigViaSub()
+            MainAction.UpdateSubscriptions -> importConfigViaSub(all = false)
+            MainAction.UpdateAllSubscriptions -> importConfigViaSub(all = true)
             MainAction.ExportAll -> exportAllAsync()
             is MainAction.SelectGroup -> subscriptionIdChanged(action.groupId)
             is MainAction.SelectServer -> updateSelectedGuid(action.guid)
             is MainAction.RemoveServer -> removeServerAndRefresh(action.guid)
             is MainAction.Search -> filterConfig(action.query)
-            is MainAction.ImportBatchConfig -> importBatchConfig(action.configText)
+            is MainAction.ImportBatchConfig -> importBatchConfig(action.configText, action.groupId)
             MainAction.LocateHandled -> consumeLocateTarget()
             is MainAction.SetRuBypass -> setRuBypass(action.enabled)
             is MainAction.SetPerAppProxy -> setPerAppProxy(action.enabled)
@@ -313,6 +314,7 @@ class MainViewModel(
             MainAction.TestCurrentServer,
             MainAction.ImportQRcode,
             MainAction.ImportClipboard,
+            MainAction.ImportClipboardToDefaultGroup,
             MainAction.ImportConfigLocal,
             is MainAction.ImportManually,
             MainAction.RestartService,
@@ -549,12 +551,12 @@ class MainViewModel(
     }
 
     // ---------- Business actions (coroutine-based) ----------
-    private fun importBatchConfig(configText: String) {
+    private fun importBatchConfig(configText: String, groupId: String?) {
         launchLoading {
             withContext(ioDispatcher) {
                 try {
                     val (count, countSub) = dataSource.importBatchConfig(
-                        configText, uiState.value.selectedGroupId, true
+                        configText, groupId ?: uiState.value.selectedGroupId, true
                     )
                     when {
                         count > 0 -> {
@@ -575,12 +577,12 @@ class MainViewModel(
         }
     }
 
-    private fun importConfigViaSub() {
+    private fun importConfigViaSub(all: Boolean) {
         val subId = uiState.value.selectedGroupId
         launchLoading {
             withContext(ioDispatcher) {
                 try {
-                    val result = if (subId.isEmpty()) {
+                    val result = if (all || subId.isEmpty()) {
                         dataSource.updateConfigViaSubAll()
                     } else {
                         val item = dataSource.getSubscriptionItem(subId) ?: return@withContext

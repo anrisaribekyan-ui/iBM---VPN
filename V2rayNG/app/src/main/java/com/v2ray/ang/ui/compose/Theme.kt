@@ -3,6 +3,7 @@ package com.v2ray.ang.ui.compose
 import android.app.Activity
 import android.content.res.Configuration
 import android.os.Build
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,10 +44,9 @@ import kotlinx.coroutines.flow.asStateFlow
 
 // ---------------------------------------------------------------------------------------------
 // iBM design tokens: white + iOS blue, Apple-style neutrals.
-// NOTE: token names keep their legacy "Red" spelling (API stability); the values are blue.
 // ---------------------------------------------------------------------------------------------
 
-/** Brand accents (legacy names, blue values). */
+/** Brand accents (iOS blue family) plus latency colours. */
 object BrandColors {
     val Blue = Color(0xFF0A84FF)         // primary accent (dark): iOS system blue, dark variant
     val BlueDeep = Color(0xFF0062CC)     // pressed / gradient end
@@ -217,9 +217,24 @@ object ThemeManager {
     )
     val dynamicColorEnabled: StateFlow<Boolean> = _dynamicColorEnabled.asStateFlow()
 
+    /**
+     * Mirrors the stored mode into AppCompat so the window background (values / values-night)
+     * matches the app choice before Compose draws, e.g. light default on a dark-mode phone.
+     */
+    private fun applyNightMode(mode: String) {
+        AppCompatDelegate.setDefaultNightMode(
+            when (mode) {
+                "1" -> AppCompatDelegate.MODE_NIGHT_NO
+                "2" -> AppCompatDelegate.MODE_NIGHT_YES
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+        )
+    }
+
     fun setThemeMode(mode: String) {
         MmkvManager.encodeSettings(AppConfig.PREF_UI_MODE_NIGHT, mode)
         _themeMode.value = mode
+        applyNightMode(mode)
     }
 
     fun setDynamicColorEnabled(enabled: Boolean) {
@@ -230,6 +245,7 @@ object ThemeManager {
     fun refresh() {
         _themeMode.value =
             MmkvManager.decodeSettingsString(AppConfig.PREF_UI_MODE_NIGHT, DEFAULT_UI_MODE_NIGHT) ?: DEFAULT_UI_MODE_NIGHT
+        applyNightMode(_themeMode.value)
         _dynamicColorEnabled.value =
             MmkvManager.decodeSettingsBool(AppConfig.PREF_DYNAMIC_COLOR, DEFAULT_DYNAMIC_COLOR)
     }

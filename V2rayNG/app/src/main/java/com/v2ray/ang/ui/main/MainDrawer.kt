@@ -102,7 +102,7 @@ fun MainDrawerContent(
                     modifier = Modifier
                         .size(52.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFF0B0B0D)),
+                        .background(Color.White),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(

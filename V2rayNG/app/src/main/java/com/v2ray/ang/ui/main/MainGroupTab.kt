@@ -36,7 +36,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 private val StripShape = RoundedCornerShape(24.dp)
 
-/** Glass strip of group "pills"; the selected group is a solid red capsule. */
+/** Glass strip of group "pills"; the selected group is a solid accent-coloured capsule. */
 @Composable
 fun GroupTabBar(
     hazeState: HazeState,

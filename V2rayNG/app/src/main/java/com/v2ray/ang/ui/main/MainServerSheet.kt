@@ -1,5 +1,6 @@
 package com.v2ray.ang.ui.main
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,6 +70,8 @@ private val SheetBarShape = RoundedCornerShape(24.dp)
  * server-management menus (import, test, sort, delete...) that no longer sit on the main screen.
  * Selecting a server selects it and closes the sheet.
  */
+// ModalBottomSheet is still @ExperimentalMaterial3Api in material3 and has no stable
+// equivalent for a modal sheet. Re-evaluate and drop the opt-in once it graduates to stable.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainServerSheet(
@@ -105,6 +108,13 @@ fun MainServerSheet(
     // The keyword filter lives in the ViewModel; never leave it applied after the sheet is gone.
     DisposableEffect(Unit) {
         onDispose { latestOnAction(MainAction.Search("")) }
+    }
+
+    // Back closes the search field first; only a second Back dismisses the sheet.
+    BackHandler(enabled = showSearch) {
+        searchQuery = ""
+        onAction(MainAction.Search(""))
+        showSearch = false
     }
 
     val closeSheet: () -> Unit = {
