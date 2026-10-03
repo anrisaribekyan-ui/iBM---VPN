@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">YOUdkinVPN</string>
-    <string name="app_widget_name">YOUdkinVPN</string>
-    <string name="app_tile_name">YOUdkinVPN</string>
+    <string name="app_name" translatable="false">iBM</string>
+    <string name="app_widget_name">iBM</string>
+    <string name="app_tile_name">iBM</string>
     <string name="app_tile_first_use">Добавьте профиль в приложении перед использованием этой функции.</string>
     <string name="navigation_drawer_open">Открыть панель навигации</string>
     <string name="navigation_drawer_close">Закрыть панель навигации</string>
@@ -14,7 +14,7 @@
     <string name="pull_down_to_refresh">Потяните вниз для обновления!</string>
 
     <!-- Notifications -->
-    <string name="notification_channel_service">Служба YOUdkinVPN</string>
+    <string name="notification_channel_service">Служба iBM</string>
     <string name="notification_channel_subscription_updates">Обновления подписок</string>
     <string name="notification_channel_connection_checks">Проверки соединения</string>
     <string name="notification_action_stop_v2ray">Остановить</string>
@@ -565,7 +565,7 @@
     <string name="connection_test_empty_message">подробности отсутствуют</string>
     <string name="value_unknown">неизвестно</string>
 
-    <!-- YOUdkinVPN quick settings -->
+    <!-- iBM quick settings -->
     <string name="quick_ru_bypass">Обход .ru</string>
     <string name="quick_ru_bypass_on">Российские сайты — напрямую</string>
     <string name="quick_ru_bypass_off">Весь трафик через VPN</string>
@@ -573,7 +573,7 @@
     <string name="quick_app_vpn_on">Только выбранные приложения</string>
     <string name="quick_app_vpn_off">Все приложения</string>
     <string name="quick_app_vpn_choose">Выбрать</string>
-    <!-- YOUdkinVPN main screen -->
+    <!-- iBM main screen -->
     <string name="status_connected_title">Подключено</string>
     <string name="status_disconnected_title">Не подключено</string>
     <string name="status_no_server">Сервер не выбран</string>

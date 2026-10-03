@@ -4,24 +4,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,16 +30,12 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -51,9 +47,15 @@ import com.v2ray.ang.ui.compose.AmbientBackground
 import com.v2ray.ang.ui.compose.QRCodeDialog
 import com.v2ray.ang.ui.compose.glassBackdrop
 import dev.chrisbanes.haze.rememberHazeState
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
+/**
+ * Minimal main screen: title + menu button, the connect button with a status line, the selected
+ * server card and two quick toggles. The full server list lives in [MainServerSheet]; every other
+ * feature is reachable from the drawer.
+ */
 @Composable
 fun MainScreen(
     mainViewModel: MainViewModel,
@@ -66,14 +68,13 @@ fun MainScreen(
     val isRunning = uiState.isRunning
     val displayText = mainViewModel.formatStatus(uiState.status)
     val selectedGuid = uiState.selectedGuid
-    val doubleColumnDisplay = uiState.doubleColumnDisplay
     val confirmRemove = uiState.confirmRemove
     val shareQRCodeBitmap = uiState.shareQRCodeBitmap
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var showSearch by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
+    var showServerSheet by rememberSaveable { mutableStateOf(false) }
+    var showImportDialog by remember { mutableStateOf(false) }
     var showDelAllConfirm by remember { mutableStateOf(false) }
     var showDelDuplicateConfirm by remember { mutableStateOf(false) }
     var showDelInvalidConfirm by remember { mutableStateOf(false) }
@@ -90,11 +91,6 @@ fun MainScreen(
         }
     }
 
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        pageCount = { groups.size.coerceAtLeast(1) }
-    )
-
     val lazyListStates = remember { mutableStateMapOf<String, LazyListState>() }
     val lazyGridStates = remember { mutableStateMapOf<String, LazyGridState>() }
 
@@ -104,27 +100,26 @@ fun MainScreen(
         lazyGridStates.keys.retainAll(validGroupIds)
     }
 
-    LaunchedEffect(groups, uiState.selectedGroupId) {
-        if (groups.isEmpty()) return@LaunchedEffect
-        val selectedIndex = groups.indexOfFirst { it.id == uiState.selectedGroupId }
-            .takeIf { it >= 0 } ?: 0
-        if (!pagerState.isScrollInProgress && pagerState.settledPage != selectedIndex) {
-            pagerState.scrollToPage(selectedIndex)
+    // Latency of the selected server comes from the group list the user last browsed.
+    val selectedGroupFlow = remember(uiState.selectedGroupId, mainViewModel) {
+        mainViewModel.serverGroupState(uiState.selectedGroupId)
+    }
+    val selectedGroupState by selectedGroupFlow.collectAsStateWithLifecycle()
+    val selectedDelayMillis = selectedGroupState.rows
+        .firstOrNull { it.guid == selectedGuid }
+        ?.testDelayMillis ?: 0L
+
+    val serverFlows = remember(groups, mainViewModel) {
+        groups.map { mainViewModel.serversForGroup(it.id) }
+    }
+    val hasServers by remember(serverFlows) {
+        if (serverFlows.isEmpty()) {
+            flowOf(false)
+        } else {
+            combine(serverFlows) { lists -> lists.any { it.isNotEmpty() } }
         }
-    }
-
-    val latestGroups by rememberUpdatedState(groups)
-
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }
-            .distinctUntilChanged()
-            .collect { page ->
-                val currentGroups = latestGroups
-                if (page in currentGroups.indices) {
-                    onAction(MainAction.SelectGroup(currentGroups[page].id))
-                }
-            }
-    }
+    }.collectAsStateWithLifecycle(initialValue = false)
+    val showEmptyState = !isLoading && !hasServers && selectedGuid.isNullOrEmpty()
 
     MainDialogs(
         showDelAllConfirm = showDelAllConfirm,
@@ -155,21 +150,57 @@ fun MainScreen(
     if (shareQRCodeBitmap != null) {
         QRCodeDialog(bitmap = shareQRCodeBitmap, onDismiss = { onAction(MainAction.DismissQRCodeDialog) })
     }
+    if (showImportDialog) {
+        ImportMethodDialog(
+            onDismiss = { showImportDialog = false },
+            onAction = onAction
+        )
+    }
+
+    val onMoreMenuAction: (MainMoreMenuAction) -> Unit = { action ->
+        when (action) {
+            MainMoreMenuAction.RestartService -> onAction(MainAction.RestartService)
+            MainMoreMenuAction.DeleteAll -> showDelAllConfirm = true
+            MainMoreMenuAction.DeleteDuplicate -> showDelDuplicateConfirm = true
+            MainMoreMenuAction.DeleteInvalid -> showDelInvalidConfirm = true
+            MainMoreMenuAction.ExportAll -> onAction(MainAction.ExportAll)
+            MainMoreMenuAction.LocateSelected -> onAction(MainAction.LocateSelectedServer)
+            MainMoreMenuAction.SortByTestResults -> onAction(MainAction.SortByTestResults)
+            MainMoreMenuAction.TestAll -> onAction(MainAction.TestAllServers)
+            MainMoreMenuAction.TestAllRealPing -> onAction(MainAction.TestRealAllServers)
+            MainMoreMenuAction.UpdateSubscriptions -> onAction(MainAction.UpdateSubscriptions)
+        }
+    }
+
+    if (showServerSheet) {
+        MainServerSheet(
+            mainViewModel = mainViewModel,
+            groups = groups,
+            selectedGroupId = uiState.selectedGroupId,
+            selectedGuid = selectedGuid,
+            locateTarget = uiState.locateTarget,
+            doubleColumnDisplay = uiState.doubleColumnDisplay,
+            isRunning = isRunning,
+            lazyListStates = lazyListStates,
+            lazyGridStates = lazyGridStates,
+            onAction = onAction,
+            onMoreMenuAction = onMoreMenuAction,
+            onShareServer = { guid, profile -> shareTarget = Triple(guid, profile, false) },
+            onMoreServer = { guid, profile -> shareTarget = Triple(guid, profile, true) },
+            onRemoveServer = removeServer,
+            onDismiss = { showServerSheet = false }
+        )
+    }
 
     val hazeState = rememberHazeState()
-    val density = LocalDensity.current
-    var topChromeHeight by remember { mutableStateOf(0.dp) }
-    var bottomChromeHeight by remember { mutableStateOf(0.dp) }
 
     val statusTitle = stringResource(
-        if (isRunning) R.string.status_connected_title else R.string.status_disconnected_title
+        if (isRunning) R.string.status_connected_title else R.string.ibm_status_disconnected
     )
     val statusDetail = when (uiState.status) {
         MainStatus.Connected, MainStatus.Disconnected -> null
         else -> displayText
     }
-    val statusSubtitle = statusDetail
-        ?: uiState.selectedServerName.ifBlank { stringResource(R.string.status_no_server) }
     val statusHint = if (statusDetail == null && isRunning) {
         stringResource(R.string.status_tap_to_test)
     } else null
@@ -180,6 +211,15 @@ fun MainScreen(
         drawerContent = {
             MainDrawerContent(
                 drawerState = drawerState,
+                onAction = { item ->
+                    scope.launch { drawerState.close() }
+                    when (item) {
+                        MainDrawerAction.UpdateSubscriptions -> onAction(MainAction.UpdateSubscriptions)
+                        MainDrawerAction.ImportClipboard -> onAction(MainAction.ImportClipboard)
+                        MainDrawerAction.Import -> showImportDialog = true
+                        MainDrawerAction.Servers -> showServerSheet = true
+                    }
+                },
                 onNavigate = { route ->
                     scope.launch { drawerState.close() }
                     onNavigate(route)
@@ -188,135 +228,81 @@ fun MainScreen(
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Everything drawn here is the backdrop the glass chrome refracts.
+            // Everything drawn here is the backdrop the glass cards refract.
             AmbientBackground(
                 active = isRunning,
                 modifier = Modifier.glassBackdrop(hazeState)
-            ) {
-                if (groups.isNotEmpty()) {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = true,
-                        beyondViewportPageCount = 1,
-                        key = { page -> groups.getOrNull(page)?.id ?: "group-page-$page" }
-                    ) { page ->
-                        val group = groups.getOrNull(page) ?: return@HorizontalPager
-
-                        GroupPagerPage(
-                            groupId = group.id,
-                            mainViewModel = mainViewModel,
-                            selectedGuid = selectedGuid,
-                            locateTarget = uiState.locateTarget,
-                            doubleColumnDisplay = doubleColumnDisplay,
-                            searchQuery = searchQuery,
-                            lazyListStates = lazyListStates,
-                            lazyGridStates = lazyGridStates,
-                            onSelectServer = { guid -> onAction(MainAction.SelectServer(guid)) },
-                            onEditServer = { guid, profile -> onAction(MainAction.EditServer(guid, profile)) },
-                            onShareServer = { guid, profile ->
-                                shareTarget = Triple(guid, profile, false)
-                            },
-                            onMoreServer = { guid, profile ->
-                                shareTarget = Triple(guid, profile, true)
-                            },
-                            onRemoveServer = removeServer,
-                            contentPadding = PaddingValues(
-                                start = 12.dp,
-                                top = topChromeHeight + 10.dp,
-                                end = 12.dp,
-                                bottom = bottomChromeHeight + 16.dp
-                            )
-                        )
-                    }
-                } else if (!isLoading) {
-                    MainEmptyState(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = topChromeHeight, bottom = bottomChromeHeight)
-                    )
-                }
-            }
+            )
 
             Column(
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .onSizeChanged { topChromeHeight = with(density) { it.height.toDp() } }
+                    .fillMaxSize()
                     .statusBarsPadding()
-                    .padding(start = 12.dp, end = 12.dp, top = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .navigationBarsPadding()
             ) {
                 MainTopBar(
-                    hazeState = hazeState,
                     isLoading = isLoading,
-                    showSearch = showSearch,
-                    searchQuery = searchQuery,
-                    onSearchQueryChange = { query: String ->
-                        searchQuery = query
-                        onAction(MainAction.Search(query))
-                    },
-                    onSearchClose = {
-                        searchQuery = ""
-                        onAction(MainAction.Search(""))
-                        showSearch = false
-                    },
-                    onSearchToggle = { show: Boolean -> showSearch = show },
                     onMenuClick = { scope.launch { drawerState.open() } },
-                    onAction = onAction,
-                    onMoreMenuAction = { action ->
-                        when (action) {
-                            MainMoreMenuAction.RestartService -> onAction(MainAction.RestartService)
-                            MainMoreMenuAction.DeleteAll -> showDelAllConfirm = true
-                            MainMoreMenuAction.DeleteDuplicate -> showDelDuplicateConfirm = true
-                            MainMoreMenuAction.DeleteInvalid -> showDelInvalidConfirm = true
-                            MainMoreMenuAction.ExportAll -> onAction(MainAction.ExportAll)
-                            MainMoreMenuAction.LocateSelected -> onAction(MainAction.LocateSelectedServer)
-                            MainMoreMenuAction.SortByTestResults -> onAction(MainAction.SortByTestResults)
-                            MainMoreMenuAction.TestAll -> onAction(MainAction.TestAllServers)
-                            MainMoreMenuAction.TestAllRealPing -> onAction(MainAction.TestRealAllServers)
-                            MainMoreMenuAction.UpdateSubscriptions -> onAction(MainAction.UpdateSubscriptions)
-                        }
-                    }
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
-                if (groups.size > 1) {
-                    GroupTabBar(
-                        hazeState = hazeState,
-                        groups = groups,
-                        selectedTabIndex = pagerState.currentPage.coerceIn(0, groups.lastIndex),
-                        mainViewModel = mainViewModel,
-                        onTabClick = { targetIndex ->
-                            scope.launch {
-                                pagerState.navigateToPageOptimized(
-                                    targetPage = targetIndex,
-                                    animateAdjacentPage = true
-                                )
-                            }
-                        }
+
+                if (showEmptyState) {
+                    MainEmptyState(
+                        onAddSubscription = { onAction(MainAction.ImportClipboard) },
+                        onOtherImport = { showImportDialog = true },
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MainConnectSection(
+                            isRunning = isRunning,
+                            statusTitle = statusTitle,
+                            statusDetail = statusDetail,
+                            statusHint = statusHint,
+                            onToggle = { onAction(MainAction.ToggleService) },
+                            onTest = { onAction(MainAction.TestCurrentServer) },
+                            modifier = Modifier.padding(horizontal = 24.dp)
+                        )
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        MainServerCard(
+                            hazeState = hazeState,
+                            serverName = uiState.selectedServerName,
+                            delayMillis = selectedDelayMillis,
+                            onClick = { showServerSheet = true }
+                        )
+                        MainQuickPanel(
+                            hazeState = hazeState,
+                            ruBypassEnabled = uiState.ruBypassEnabled,
+                            perAppProxyEnabled = uiState.perAppProxyEnabled,
+                            onAction = onAction,
+                            onChooseApps = { onNavigate(MainDestination.PerAppProxy) }
+                        )
+                    }
                 }
             }
-
-            MainBottomBar(
-                hazeState = hazeState,
-                isRunning = isRunning,
-                statusTitle = statusTitle,
-                statusSubtitle = statusSubtitle,
-                statusHint = statusHint,
-                ruBypassEnabled = uiState.ruBypassEnabled,
-                perAppProxyEnabled = uiState.perAppProxyEnabled,
-                onAction = onAction,
-                onChooseApps = { onNavigate(MainDestination.PerAppProxy) },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .onSizeChanged { bottomChromeHeight = with(density) { it.height.toDp() } }
-            )
         }
     }
 }
 
 @Composable
-private fun MainEmptyState(modifier: Modifier = Modifier) {
+private fun MainEmptyState(
+    onAddSubscription: () -> Unit,
+    onOtherImport: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier.padding(horizontal = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -345,10 +331,18 @@ private fun MainEmptyState(modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = stringResource(R.string.empty_servers_hint),
+            text = stringResource(R.string.ibm_empty_hint),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+        Spacer(Modifier.height(28.dp))
+        Button(onClick = onAddSubscription) {
+            Text(stringResource(R.string.ibm_add_subscription))
+        }
+        Spacer(Modifier.height(4.dp))
+        TextButton(onClick = onOtherImport) {
+            Text(stringResource(R.string.ibm_other_import_methods))
+        }
     }
 }

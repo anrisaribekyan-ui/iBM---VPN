@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="ibm_status_disconnected">Disconnected</string>
+    <string name="ibm_server_label">Server</string>
+    <string name="ibm_choose_server">Choose server</string>
+    <string name="ibm_servers">Servers</string>
+    <string name="ibm_update_subscription">Update subscription</string>
+    <string name="ibm_import_clipboard">Import from clipboard</string>
+    <string name="ibm_import">Import…</string>
+    <string name="ibm_empty_hint">Copy a subscription link or a key, then add it from the clipboard.</string>
+    <string name="ibm_add_subscription">Add subscription</string>
+    <string name="ibm_other_import_methods">Other ways to import</string>
+</resources>

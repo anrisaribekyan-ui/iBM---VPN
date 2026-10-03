@@ -25,7 +25,7 @@ object AppConfig {
     const val PREF_PER_APP_PROXY = "pref_per_app_proxy"
     const val PREF_PER_APP_PROXY_SET = "pref_per_app_proxy_set"
     const val PREF_BYPASS_APPS = "pref_bypass_apps"
-    /** YOUdkinVPN quick toggle: Russian domains and IPs go direct (WHITE_RUSSIA preset) instead of through the proxy. */
+    /** iBM quick toggle: Russian domains and IPs go direct (WHITE_RUSSIA preset) instead of through the proxy. */
     const val PREF_RU_BYPASS = "pref_youdkin_ru_bypass"
     const val PREF_LOCAL_DNS_ENABLED = "pref_local_dns_enabled"
     const val PREF_FAKE_DNS_ENABLED = "pref_fake_dns_enabled"

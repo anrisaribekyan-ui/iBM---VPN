@@ -65,6 +65,22 @@ fun ImportMenuContent(onAction: (MainAction) -> Unit) = AppDropdownMenuItems(
     onSelected = { onAction(it.action) }
 )
 
+/** Dialog with every import method, for entry points that have no dropdown anchor. */
+@Composable
+fun ImportMethodDialog(
+    onDismiss: () -> Unit,
+    onAction: (MainAction) -> Unit,
+) = SelectListDialog(
+    options = ImportMenuAction.entries,
+    optionText = { stringResource(it.labelRes) },
+    onSelected = { method ->
+        onDismiss()
+        onAction(method.action)
+    },
+    onDismiss = onDismiss,
+    title = stringResource(R.string.ibm_import)
+)
+
 @Composable
 fun MoreMenuContent(onSelected: (MainMoreMenuAction) -> Unit) = AppDropdownMenuItems(
     items = MainMoreMenuAction.entries,

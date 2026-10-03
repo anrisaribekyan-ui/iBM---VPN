@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ibm_status_disconnected">Отключено</string>
+    <string name="ibm_server_label">Сервер</string>
+    <string name="ibm_choose_server">Выбрать сервер</string>
+    <string name="ibm_servers">Серверы</string>
+    <string name="ibm_update_subscription">Обновить подписку</string>
+    <string name="ibm_import_clipboard">Импорт из буфера</string>
+    <string name="ibm_import">Импорт…</string>
+    <string name="ibm_empty_hint">Скопируйте ссылку-подписку или ключ и добавьте из буфера обмена.</string>
+    <string name="ibm_add_subscription">Добавить подписку</string>
+    <string name="ibm_other_import_methods">Другие способы импорта</string>
+</resources>
