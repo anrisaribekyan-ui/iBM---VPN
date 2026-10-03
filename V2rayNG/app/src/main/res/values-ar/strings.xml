@@ -577,5 +577,11 @@
     <string name="quick_app_vpn_on">Only selected apps</string>
     <string name="quick_app_vpn_off">All apps</string>
     <string name="quick_app_vpn_choose">Choose</string>
-
+    <!-- YOUdkinVPN main screen -->
+    <string name="status_connected_title">Connected</string>
+    <string name="status_disconnected_title">Not connected</string>
+    <string name="status_no_server">No server selected</string>
+    <string name="status_tap_to_test">Tap to check the connection</string>
+    <string name="empty_servers_title">No servers yet</string>
+    <string name="empty_servers_hint">Tap + at the top to add a key or a subscription.</string>
 </resources>

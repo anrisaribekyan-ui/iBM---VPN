@@ -106,6 +106,7 @@ class MainViewModel(
     private var selectedGroupLoadJob: Job? = null
     private var reloadJob: Job? = null
     private var testResultFlushJob: Job? = null
+    private var selectedNameJob: Job? = null
     private val pendingTestResults = linkedMapOf<String, Long>()
 
     private val testRequests = MainTestRequests()
@@ -117,6 +118,7 @@ class MainViewModel(
     init {
         collectServiceEvents()
         setupGroupTab()
+        refreshSelectedServerName(_uiState.value.selectedGuid)
     }
 
     private fun collectServiceEvents() {
@@ -277,7 +279,10 @@ class MainViewModel(
     fun onAction(action: MainAction) {
         when (action) {
             MainAction.Initialize -> initialize()
-            MainAction.RefreshGroups -> setupGroupTab(forceRefresh = true)
+            MainAction.RefreshGroups -> {
+                setupGroupTab(forceRefresh = true)
+                refreshSelectedServerName(_uiState.value.selectedGuid)
+            }
             MainAction.TestAllServers -> testAllRealPing(true)
             MainAction.TestRealAllServers -> testAllRealPing()
             MainAction.CancelTesting -> cancelAllPing()
@@ -809,10 +814,31 @@ class MainViewModel(
     fun updateSelectedGuid(guid: String) {
         dataSource.setSelectServer(guid)
         _uiState.update { it.copy(selectedGuid = guid) }
+        refreshSelectedServerName(guid)
     }
 
     fun refreshSelectedGuid() {
-        _uiState.update { it.copy(selectedGuid = dataSource.getSelectServer()) }
+        val guid = dataSource.getSelectServer()
+        _uiState.update { it.copy(selectedGuid = guid) }
+        refreshSelectedServerName(guid)
+    }
+
+    /** Resolves the selected profile's name on IO; a newer selection cancels an older lookup. */
+    private fun refreshSelectedServerName(guid: String?) {
+        selectedNameJob?.cancel()
+        selectedNameJob = viewModelScope.launch(ioDispatcher) {
+            val name = try {
+                guid?.let { dataSource.decodeServerConfig(it)?.remarks }.orEmpty()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                LogUtil.e(AppConfig.TAG, "Main selected server name lookup failed", error)
+                ""
+            }
+            _uiState.update { state ->
+                if (state.selectedGuid == guid) state.copy(selectedServerName = name) else state
+            }
+        }
     }
 
     fun removeServerAndRefresh(guid: String) {

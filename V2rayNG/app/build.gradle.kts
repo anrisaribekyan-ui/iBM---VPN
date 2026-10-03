@@ -211,6 +211,10 @@ dependencies {
     // Reorderable list
     implementation(libs.reorderable)
 
+    // Liquid glass surfaces (YOUdkinVPN design)
+    implementation(libs.haze)
+    implementation(libs.haze.glass)
+
     // Testing Libraries
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

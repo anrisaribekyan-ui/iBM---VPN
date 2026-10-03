@@ -573,5 +573,11 @@
     <string name="quick_app_vpn_on">Только выбранные приложения</string>
     <string name="quick_app_vpn_off">Все приложения</string>
     <string name="quick_app_vpn_choose">Выбрать</string>
-
+    <!-- YOUdkinVPN main screen -->
+    <string name="status_connected_title">Подключено</string>
+    <string name="status_disconnected_title">Не подключено</string>
+    <string name="status_no_server">Сервер не выбран</string>
+    <string name="status_tap_to_test">Нажмите, чтобы проверить соединение</string>
+    <string name="empty_servers_title">Серверов пока нет</string>
+    <string name="empty_servers_hint">Нажмите «+» вверху, чтобы добавить ключ или подписку.</string>
 </resources>

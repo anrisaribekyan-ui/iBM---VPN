@@ -125,7 +125,7 @@ fun CheckUpdateScreen(
                     Text(stringResource(R.string.action_cancel))
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         )
     }
 }

@@ -1,11 +1,15 @@
 package com.v2ray.ang.ui.compose
 
 import android.app.Activity
+import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -16,109 +20,185 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.v2ray.ang.AppConfig
+import com.v2ray.ang.R
 import com.v2ray.ang.handler.MmkvManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+// ---------------------------------------------------------------------------------------------
+// YOUdkinVPN design tokens: black + red, Apple-style neutrals.
+// ---------------------------------------------------------------------------------------------
+
+/** Brand reds. */
+object BrandColors {
+    val Red = Color(0xFFFF3347)          // primary accent (dark)
+    val RedDeep = Color(0xFFD90A24)      // pressed / gradient end
+    val RedLight = Color(0xFFE5172C)     // primary accent on light backgrounds
+    val RedGlow = Color(0xFFFF1F3D)      // ambient glow
+    val Green = Color(0xFF32D74B)        // good latency
+    val Amber = Color(0xFFFFB340)        // medium latency
+}
+
 private val LightColor = lightColorScheme(
-    primary = Color(0xFFC62828), // Red
-    onPrimary = Color(0xFFFFFFFF), // White
-    primaryContainer = Color(0xFFFFDAD6), // Pale Red
-    onPrimaryContainer = Color(0xFF410002), // Dark Red
-    secondary = Color(0xFFD32F2F), // Red
-    onSecondary = Color(0xFFFFFFFF), // White
-    secondaryContainer = Color(0xFFFFE3E0), // Pale Red
-    onSecondaryContainer = Color(0xFF3B0000), // Very Dark Red
-    tertiary = Color(0xFF009966), // Green
-    onTertiary = Color(0xFFFFFFFF), // White
-    tertiaryContainer = Color(0xFFA0F2D0), // Light Green
-    onTertiaryContainer = Color(0xFF00201A), // Dark Teal
-    error = Color(0xFFBA1A1A), // Red
-    errorContainer = Color(0xFFFFDAD6), // Light Red
-    onError = Color(0xFFFFFFFF), // White
-    onErrorContainer = Color(0xFF410002), // Dark Red
-    background = Color(0xFFFFFFFF), // White
-    onBackground = Color(0xFF1C1B1F), // Near Black
-    surface = Color(0xFFFFFFFF), // White
-    onSurface = Color(0xFF1C1B1F), // Near Black
-    surfaceVariant = Color(0xFFE7E0EC), // Light Purple Gray
-    onSurfaceVariant = Color(0xFF49454F), // Dark Gray
-    outline = Color(0xFF79747E), // Medium Gray
-    outlineVariant = Color(0xFFCAC4D0), // Light Gray
-    inverseSurface = Color(0xFF313033), // Dark Gray
-    inverseOnSurface = Color(0xFFF4EFF4), // Very Light Gray
-    inversePrimary = Color(0xFFC0C0C0), // Silver Gray
-    scrim = Color(0xFF000000), // Black
-    surfaceTint = Color(0xFFC62828), // Red
-    surfaceContainerLowest = Color(0xFFFFFFFF), // White
-    surfaceContainerLow = Color(0xFFF7F7F7), // Very Light Gray
-    surfaceContainer = Color(0xFFF1F1F1), // Light Gray
-    surfaceContainerHigh = Color(0xFFEBEBEB), // Light Gray
-    surfaceContainerHighest = Color(0xFFE5E5E5), // Light Gray
+    primary = BrandColors.RedLight,
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFFFE3E5),
+    onPrimaryContainer = Color(0xFF5C0010),
+    secondary = BrandColors.RedLight,
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFFFE3E5),
+    onSecondaryContainer = Color(0xFF5C0010),
+    tertiary = Color(0xFF1C1C1E),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFE5E5EA),
+    onTertiaryContainer = Color(0xFF1C1C1E),
+    error = Color(0xFFD70015),
+    errorContainer = Color(0xFFFFDAD6),
+    onError = Color.White,
+    onErrorContainer = Color(0xFF410002),
+    background = Color(0xFFF2F2F7),
+    onBackground = Color(0xFF000000),
+    surface = Color(0xFFF2F2F7),
+    onSurface = Color(0xFF000000),
+    surfaceVariant = Color(0xFFE5E5EA),
+    onSurfaceVariant = Color(0xFF6C6C70),
+    outline = Color(0xFFC6C6C8),
+    outlineVariant = Color(0xFFE5E5EA),
+    inverseSurface = Color(0xFF1C1C1E),
+    inverseOnSurface = Color(0xFFF2F2F7),
+    inversePrimary = BrandColors.Red,
+    scrim = Color.Black,
+    surfaceTint = Color.Transparent,
+    surfaceBright = Color.White,
+    surfaceDim = Color(0xFFE5E5EA),
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow = Color.White,
+    surfaceContainer = Color.White,
+    surfaceContainerHigh = Color(0xFFF9F9FB),
+    surfaceContainerHighest = Color(0xFFE9E9EE),
 )
 
 private val DarkColor = darkColorScheme(
-    primary = Color(0xFFE53935), // Red
-    onPrimary = Color(0xFFFFFFFF), // White
-    primaryContainer = Color(0xFF5C0F0F), // Deep Red
-    onPrimaryContainer = Color(0xFFFFDAD6), // Pale Red
-    secondary = Color(0xFFFF5252), // Bright Red
-    onSecondary = Color(0xFF3B0000), // Very Dark Red
-    secondaryContainer = Color(0xFF4A0D0D), // Dark Red
-    onSecondaryContainer = Color(0xFFFFDAD6), // Pale Red
-    tertiary = Color(0xFFFF8A80), // Light Red
-    onTertiary = Color(0xFF3B0000), // Very Dark Red
-    tertiaryContainer = Color(0xFF3A1414), // Dark Red Brown
-    onTertiaryContainer = Color(0xFFFFDAD6), // Pale Red
-    error = Color(0xFFFFB4AB), // Light Red
-    errorContainer = Color(0xFF93000A), // Dark Red
-    onError = Color(0xFF690005), // Deep Red
-    onErrorContainer = Color(0xFFFFDAD6), // Light Red
-    background = Color(0xFF0B0B0D), // Black
-    onBackground = Color(0xFFEDEDED), // Light Gray
-    surface = Color(0xFF0B0B0D), // Black
-    onSurface = Color(0xFFEDEDED), // Light Gray
-    surfaceVariant = Color(0xFF2A1A1A), // Red-tinted Dark Gray
-    onSurfaceVariant = Color(0xFFC9B8B8), // Warm Light Gray
-    outline = Color(0xFF8F7777), // Warm Gray
-    outlineVariant = Color(0xFF3A2A2A), // Dark Warm Gray
-    inverseSurface = Color(0xFFEDEDED), // Light Gray
-    inverseOnSurface = Color(0xFF0B0B0D), // Black
-    inversePrimary = Color(0xFFB71C1C), // Dark Red
-    scrim = Color(0xFF000000), // Black
-    surfaceTint = Color(0xFFE53935), // Red
-    surfaceContainerLowest = Color(0xFF050506), // Black
-    surfaceContainerLow = Color(0xFF111113), // Near Black
-    surfaceContainer = Color(0xFF16161A), // Near Black
-    surfaceContainerHigh = Color(0xFF1E1E22), // Dark Gray
-    surfaceContainerHighest = Color(0xFF28282C), // Dark Gray
+    primary = BrandColors.Red,
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFF3D0710),
+    onPrimaryContainer = Color(0xFFFFD9DC),
+    secondary = BrandColors.Red,
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFF3D0710),
+    onSecondaryContainer = Color(0xFFFFD9DC),
+    tertiary = Color(0xFFF5F5F7),
+    onTertiary = Color.Black,
+    tertiaryContainer = Color(0xFF2C2C2E),
+    onTertiaryContainer = Color(0xFFF5F5F7),
+    error = Color(0xFFFF6961),
+    errorContainer = Color(0xFF5C0A0A),
+    onError = Color.Black,
+    onErrorContainer = Color(0xFFFFDAD6),
+    background = Color.Black,
+    onBackground = Color(0xFFF5F5F7),
+    surface = Color.Black,
+    onSurface = Color(0xFFF5F5F7),
+    surfaceVariant = Color(0xFF1C1C1E),
+    onSurfaceVariant = Color(0xFF8E8E93),
+    outline = Color(0xFF48484A),
+    outlineVariant = Color(0xFF2C2C2E),
+    inverseSurface = Color(0xFFF5F5F7),
+    inverseOnSurface = Color.Black,
+    inversePrimary = BrandColors.RedLight,
+    scrim = Color.Black,
+    surfaceTint = Color.Transparent,
+    surfaceBright = Color(0xFF2C2C2E),
+    surfaceDim = Color.Black,
+    surfaceContainerLowest = Color.Black,
+    surfaceContainerLow = Color(0xFF0E0E10),
+    surfaceContainer = Color(0xFF141416),
+    surfaceContainerHigh = Color(0xFF1C1C1E),
+    surfaceContainerHighest = Color(0xFF2C2C2E),
 )
 
 // Semantic Colors
-val colorPing = Color(0xFF009966) // Green
-val colorPingRed = Color(0xFFFF0099) // Pink Red
-val colorConfigType = Color(0xFFE53935) // Red
-val colorFabActive = Color(0xFFE53935) // Red
-val colorFabInactiveLight = Color(0xFF9C9C9C) // Gray
-val colorFabInactiveDark = Color(0xFF3A3A3E) // Dark Gray
-val dividerColorLight = Color(0xFFE0E0E0) // Light Gray
-val dividerColorDark = Color(0xFF424242) // Dark Gray
+val colorPing = BrandColors.Green
+val colorPingRed = Color(0xFFFF453A)
+val colorConfigType = BrandColors.Red
+val colorFabActive = BrandColors.Red
+val colorFabInactiveLight = Color(0xFFC7C7CC)
+val colorFabInactiveDark = Color(0xFF2C2C2E)
+val dividerColorLight = Color(0x1F3C3C43) // iOS separator, light
+val dividerColorDark = Color(0x29FFFFFF)  // hairline on black
 
-// Toast Colors 85%
-val toastNormalBgLight = Color(0xD9353A3E) // Dark Gray
-val toastNormalBgDark = Color(0xD94A4F54) // Darker Gray
-val toastSuccessBg = Color(0xD9388E3C) // Green
-val toastErrorBg = Color(0xD9D50000) // Red
-val toastInfoBg = Color(0xD93F51B5) // Indigo Blue
-val toastIconCircleBg = Color(0x33FFFFFF) // Semi-transparent White
-val toastTextColor = Color.White // White
+// Toast Colors 90%
+val toastNormalBgLight = Color(0xE61C1C1E)
+val toastNormalBgDark = Color(0xE62C2C2E)
+val toastSuccessBg = Color(0xE6248A3D)
+val toastErrorBg = Color(0xE6D70015)
+val toastInfoBg = Color(0xE62C2C2E)
+val toastIconCircleBg = Color(0x33FFFFFF)
+val toastTextColor = Color.White
+
+// ---------------------------------------------------------------------------------------------
+// Typography: Inter, with Apple-like optical tracking (tighter as size grows).
+// ---------------------------------------------------------------------------------------------
+
+val InterFamily = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_semibold, FontWeight.SemiBold),
+    Font(R.font.inter_bold, FontWeight.Bold),
+)
+
+private fun inter(size: Int, line: Int, weight: FontWeight, tracking: TextUnit): TextStyle = TextStyle(
+    fontFamily = InterFamily,
+    fontWeight = weight,
+    fontSize = size.sp,
+    lineHeight = line.sp,
+    letterSpacing = tracking,
+)
+
+val AppTypography = Typography(
+    displayLarge = inter(52, 58, FontWeight.Bold, (-1.2).sp),
+    displayMedium = inter(42, 48, FontWeight.Bold, (-0.9).sp),
+    displaySmall = inter(34, 40, FontWeight.Bold, (-0.7).sp),
+    headlineLarge = inter(30, 36, FontWeight.Bold, (-0.6).sp),
+    headlineMedium = inter(26, 32, FontWeight.SemiBold, (-0.5).sp),
+    headlineSmall = inter(22, 28, FontWeight.SemiBold, (-0.4).sp),
+    titleLarge = inter(20, 26, FontWeight.SemiBold, (-0.35).sp),
+    titleMedium = inter(17, 22, FontWeight.SemiBold, (-0.25).sp),
+    titleSmall = inter(15, 20, FontWeight.SemiBold, (-0.15).sp),
+    bodyLarge = inter(16, 22, FontWeight.Normal, (-0.2).sp),
+    bodyMedium = inter(14, 20, FontWeight.Normal, (-0.1).sp),
+    bodySmall = inter(12, 16, FontWeight.Normal, 0.sp),
+    labelLarge = inter(15, 20, FontWeight.SemiBold, (-0.15).sp),
+    labelMedium = inter(13, 18, FontWeight.Medium, (-0.05).sp),
+    labelSmall = inter(11, 14, FontWeight.Medium, 0.1.sp),
+)
+
+/** Continuous, generous corners (iOS / One UI feel). */
+val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(10.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(30.dp),
+)
+
+// ---------------------------------------------------------------------------------------------
 
 /** YOUdkinVPN branding: dark black-red theme by default, system dynamic colors off. */
 const val DEFAULT_UI_MODE_NIGHT = "2"
@@ -194,12 +274,25 @@ fun AppTheme(
         }
     }
 
+    // The app can force dark mode while the system is light. Components that read the night
+    // bit from Configuration (e.g. glass materials picking their tone) must see the app's choice.
+    val baseConfiguration = LocalConfiguration.current
+    val themedConfiguration = remember(baseConfiguration, darkTheme) {
+        Configuration(baseConfiguration).apply {
+            uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
+                if (darkTheme) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
+        }
+    }
+
     CompositionLocalProvider(
         LocalDarkTheme provides darkTheme,
-        LocalAppSnackbar provides snackbarController
+        LocalAppSnackbar provides snackbarController,
+        LocalConfiguration provides themedConfiguration
     ) {
         MaterialTheme(
-            colorScheme = colorScheme
+            colorScheme = colorScheme,
+            typography = AppTypography,
+            shapes = AppShapes
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 AppSnackbarBridge(controller = snackbarController)

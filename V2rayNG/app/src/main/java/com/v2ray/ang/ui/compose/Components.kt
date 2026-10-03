@@ -1,10 +1,11 @@
 package com.v2ray.ang.ui.compose
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -31,7 +32,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -44,17 +44,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.v2ray.ang.R
@@ -85,7 +84,7 @@ fun AppTopBar(
                         placeholder = searchPlaceholder
                     )
                 } else {
-                    Text(text = title)
+                    Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             },
             navigationIcon = {
@@ -102,9 +101,10 @@ fun AppTopBar(
             },
             actions = actions,
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.background,
                 titleContentColor = MaterialTheme.colorScheme.onSurface,
-                navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                navigationIconContentColor = MaterialTheme.colorScheme.primary,
                 actionIconContentColor = MaterialTheme.colorScheme.onSurface
             )
         )
@@ -113,8 +113,13 @@ fun AppTopBar(
             enter = expandVertically(),
             exit = shrinkVertically()
         ) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.secondary)
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth().height(2.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = Color.Transparent
+            )
         }
+        if (!isLoading) AppDivider()
     }
 }
 
@@ -131,14 +136,14 @@ private fun SearchInputField(
             value = query,
             onValueChange = onQueryChange,
             singleLine = true,
-            textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp),
-            placeholder = { if (placeholder != null) Text(placeholder, style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)) },
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+            placeholder = { if (placeholder != null) Text(placeholder, style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.secondary,
+                cursorColor = MaterialTheme.colorScheme.primary,
                 selectionColors = TextSelectionColors(
                     handleColor = MaterialTheme.colorScheme.secondary,
                     backgroundColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f)
@@ -171,7 +176,7 @@ fun AppListItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         val model = remember(icon, packageName) {
@@ -214,20 +219,24 @@ fun AppListItem(
         Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.secondary)
+            colors = CheckboxDefaults.colors(
+                checkedColor = MaterialTheme.colorScheme.primary,
+                uncheckedColor = MaterialTheme.colorScheme.outline,
+                checkmarkColor = Color.White
+            )
         )
     }
 }
 
 @Composable
 fun ItemDivider() {
-    AppDivider(modifier = Modifier.padding(horizontal = 12.dp))
+    AppDivider(modifier = Modifier.padding(start = 20.dp))
 }
 
 @Composable
 fun AppDivider(modifier: Modifier = Modifier) {
     val color = if (LocalDarkTheme.current) dividerColorDark else dividerColorLight
-    HorizontalDivider(modifier = modifier.fillMaxWidth(), thickness = 1.dp, color = color)
+    HorizontalDivider(modifier = modifier.fillMaxWidth(), thickness = 0.5.dp, color = color)
 }
 
 @Composable
@@ -262,9 +271,9 @@ fun VersionInfoBlock(
 }
 
 @Composable
-private fun reorderableElevation(isDragging: Boolean) = animateDpAsState(
-    targetValue = if (isDragging) 4.dp else 0.dp,
-    label = "ReorderableElevation"
+private fun reorderableLift(isDragging: Boolean) = animateFloatAsState(
+    targetValue = if (isDragging) 1.03f else 1f,
+    label = "ReorderableLift"
 )
 
 @Composable
@@ -284,19 +293,15 @@ fun ReorderableListItem(
     isDragging: Boolean,
     content: @Composable RowScope.() -> Unit
 ) {
-    val elevation by reorderableElevation(isDragging)
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shadowElevation = elevation
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(with(scope) { reorderableDragHandle() }),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
-    }
+    val lift by reorderableLift(isDragging)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer { scaleX = lift; scaleY = lift }
+            .then(with(scope) { reorderableDragHandle() }),
+        verticalAlignment = Alignment.CenterVertically,
+        content = content
+    )
 }
 
 @Composable
@@ -305,12 +310,12 @@ fun ReorderableGridItem(
     isDragging: Boolean,
     content: @Composable () -> Unit
 ) {
-    val elevation by reorderableElevation(isDragging)
-    Surface(
+    val lift by reorderableLift(isDragging)
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .then(with(scope) { reorderableDragHandle() }),
-        shadowElevation = elevation
+            .graphicsLayer { scaleX = lift; scaleY = lift }
+            .then(with(scope) { reorderableDragHandle() })
     ) {
         content()
     }

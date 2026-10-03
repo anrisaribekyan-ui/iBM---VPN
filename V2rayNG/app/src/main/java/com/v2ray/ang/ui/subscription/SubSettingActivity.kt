@@ -20,8 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -43,6 +41,7 @@ import com.v2ray.ang.extension.toast
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.MmkvManager.rememberMmkvBool
 import com.v2ray.ang.ui.base.BaseComponentActivity
+import com.v2ray.ang.ui.compose.AppSwitch
 import com.v2ray.ang.ui.compose.AppTopBar
 import com.v2ray.ang.ui.compose.DeleteConfirmDialog
 import com.v2ray.ang.ui.compose.ItemDivider
@@ -224,18 +223,14 @@ fun SubSettingScreen(
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Switch(
+                                AppSwitch(
                                     checked = subCache.subscription.enabled,
                                     onCheckedChange = { checked ->
                                         val updated = subCache.subscription.copy()
                                         updated.enabled = checked
                                         viewModel.update(subCache.guid, updated)
                                     },
-                                    modifier = Modifier.scale(0.7f),
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = MaterialTheme.colorScheme.onSecondary,
-                                        checkedTrackColor = MaterialTheme.colorScheme.secondary
-                                    )
+                                    modifier = Modifier.scale(0.8f)
                                 )
                             }
                         }

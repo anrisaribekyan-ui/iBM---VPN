@@ -567,5 +567,11 @@
     <string name="quick_app_vpn_on">仅所选应用</string>
     <string name="quick_app_vpn_off">所有应用</string>
     <string name="quick_app_vpn_choose">选择</string>
-
+    <!-- YOUdkinVPN main screen -->
+    <string name="status_connected_title">已连接</string>
+    <string name="status_disconnected_title">未连接</string>
+    <string name="status_no_server">未选择服务器</string>
+    <string name="status_tap_to_test">点按以检查连接</string>
+    <string name="empty_servers_title">暂无服务器</string>
+    <string name="empty_servers_hint">点按顶部的 + 添加密钥或订阅。</string>
 </resources>

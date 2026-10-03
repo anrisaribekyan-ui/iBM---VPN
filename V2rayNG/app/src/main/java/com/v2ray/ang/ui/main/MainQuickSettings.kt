@@ -1,5 +1,7 @@
 package com.v2ray.ang.ui.main
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,17 +10,18 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.v2ray.ang.R
+import com.v2ray.ang.ui.compose.AppSwitch
 
 /**
  * YOUdkinVPN quick settings shown directly under the connect button:
@@ -51,12 +54,17 @@ fun MainQuickSettings(
                 onCheckedChange = { onAction(MainAction.SetPerAppProxy(it)) },
                 modifier = Modifier.weight(1f)
             )
-            TextButton(
-                onClick = onChooseApps,
-                modifier = Modifier.padding(end = 8.dp)
-            ) {
-                Text(text = stringResource(R.string.quick_app_vpn_choose))
-            }
+            Text(
+                text = stringResource(R.string.quick_app_vpn_choose),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(end = 14.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f))
+                    .clickable(role = Role.Button, onClick = onChooseApps)
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+            )
         }
     }
 }
@@ -73,13 +81,17 @@ private fun QuickSwitchRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
+            .heightIn(min = 58.dp)
             .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .padding(horizontal = 20.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Text(
                 text = summary,
                 style = MaterialTheme.typography.bodySmall,
@@ -87,6 +99,6 @@ private fun QuickSwitchRow(
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
-        Switch(checked = checked, onCheckedChange = null)
+        AppSwitch(checked = checked, onCheckedChange = null)
     }
 }

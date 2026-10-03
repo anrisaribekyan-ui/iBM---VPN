@@ -141,7 +141,7 @@ fun AboutScreen(
                     Text(stringResource(R.string.action_ok))
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             modifier = Modifier.padding(bottom = 60.dp)
         )
     }
