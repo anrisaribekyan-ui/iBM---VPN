@@ -70,7 +70,7 @@ jobs:
     # with Xray-core's "VLESS/Trojan without TLS is prohibited" config check disabled
     # so existing non-TLS server profiles keep working.
     - name: Setup Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version-file: 'AndroidLibXrayLite/go.mod'
         cache-dependency-path: 'AndroidLibXrayLite/go.sum'
