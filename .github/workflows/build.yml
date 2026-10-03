@@ -66,21 +66,47 @@ jobs:
       run: |
         cp -r ${{ github.workspace }}/libs ${{ github.workspace }}/V2rayNG/app
 
-    - name: Fetch AndroidLibXrayLite tag
-      run: |
-        pushd AndroidLibXrayLite
-        CURRENT_TAG=$(git describe --tags --abbrev=0)
-        echo "Current tag in this repo: $CURRENT_TAG"
-        echo "CURRENT_TAG=$CURRENT_TAG" >> $GITHUB_ENV
-        popd
-
-    - name: Download libv2ray
-      uses: robinraju/release-downloader@v1.13
+    # YOUdkinVPN: build libv2ray from source instead of downloading 2dust's release,
+    # with Xray-core's "VLESS/Trojan without TLS is prohibited" config check disabled
+    # so existing non-TLS server profiles keep working.
+    - name: Setup Go
+      uses: actions/setup-go@v6
       with:
-        repository: '2dust/AndroidLibXrayLite'
-        tag: ${{ env.CURRENT_TAG }}
-        fileName: 'libv2ray.aar'
-        out-file-path: V2rayNG/app/libs/
+        go-version-file: 'AndroidLibXrayLite/go.mod'
+        cache-dependency-path: 'AndroidLibXrayLite/go.sum'
+
+    - name: Patch Xray-core
+      run: |
+        set -euo pipefail
+        cd AndroidLibXrayLite
+        go mod download github.com/xtls/xray-core
+        SRC=$(go list -m -f '{{.Dir}}' github.com/xtls/xray-core)
+        echo "Xray-core source: $SRC"
+        rm -rf ../xray-core-patched
+        cp -r "$SRC" ../xray-core-patched
+        chmod -R u+w ../xray-core-patched
+        F=../xray-core-patched/infra/conf/xray.go
+        grep -q '^func validateOutboundTransportSecurity(' "$F"
+        sed -i '/^func validateOutboundTransportSecurity(/a\	return nil // YOUdkinVPN: allow VLESS/Trojan without TLS' "$F"
+        grep -n -A1 '^func validateOutboundTransportSecurity(' "$F"
+        grep -q 'return nil // YOUdkinVPN' "$F"
+        go mod edit -replace github.com/xtls/xray-core=../xray-core-patched
+
+    - name: Build libv2ray
+      run: |
+        set -euo pipefail
+        go install golang.org/x/mobile/cmd/gomobile@latest
+        export PATH=$PATH:$(go env GOPATH)/bin
+        export ANDROID_NDK_HOME=$NDK_HOME
+        cd AndroidLibXrayLite
+        mkdir -p assets data
+        bash gen_assets.sh download
+        cp -v data/*.dat assets/
+        gomobile init
+        go mod tidy
+        gomobile bind -v -androidapi 24 -trimpath -ldflags='-s -w -buildid= -checklinkname=0' ./
+        mkdir -p ../V2rayNG/app/libs
+        cp -v libv2ray.aar ../V2rayNG/app/libs/
 
     - name: Setup Java
       uses: actions/setup-java@v6.0.1
