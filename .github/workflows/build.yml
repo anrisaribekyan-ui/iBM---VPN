@@ -169,6 +169,30 @@ jobs:
         name: universal-apk
         path: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/playstore/release/*universal*.apk
 
+    # iBM: publish every master build as a release so the APK can be downloaded
+    # directly (no zip, no login) from releases/latest/download/iBM-<abi>.apk
+    - name: Prepare release files
+      if: ${{ success() && github.event_name == 'push' }}
+      run: |
+        set -euo pipefail
+        mkdir -p ${{ github.workspace }}/release-apk
+        cd ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/playstore/release
+        ls -la
+        for abi in arm64-v8a armeabi-v7a universal; do
+          f=$(ls *_${abi}.apk 2>/dev/null | head -1 || true)
+          if [ -n "$f" ]; then cp -v "$f" ${{ github.workspace }}/release-apk/iBM-${abi}.apk; fi
+        done
+        test -f ${{ github.workspace }}/release-apk/iBM-arm64-v8a.apk
+
+    - name: Publish release
+      if: ${{ success() && github.event_name == 'push' }}
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: build-${{ github.run_number }}
+        name: iBM build ${{ github.run_number }}
+        make_latest: true
+        files: release-apk/*.apk
+
   sign-and-release:
     needs: build
     runs-on: ubuntu-26.04
