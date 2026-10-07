@@ -42,7 +42,7 @@ import dev.chrisbanes.haze.glass.hazeGlass
 import dev.chrisbanes.haze.hazeSource
 
 /*
- * iBM glass surfaces (white + blue, iOS 27 style frosted glass).
+ * iBM glass surfaces (black + red, iOS 27 style frosted glass).
  *
  * Glass uses Haze's iOS 27-calibrated Glass material (refraction, diffusion, dark edge and
  * specular highlight). Those APIs are marked @ExperimentalHazeApi (warning level), so every use
@@ -111,7 +111,7 @@ fun glassTint(): Color =
 /** Hairline that defines a glass or card edge on black (iOS-style 0.5dp separator). */
 @Composable
 fun Modifier.hairline(shape: RoundedCornerShape): Modifier {
-    val color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.09f) else BrandColors.BlueLight.copy(alpha = 0.10f)
+    val color = if (LocalDarkTheme.current) Color.White.copy(alpha = 0.09f) else BrandColors.RedLight.copy(alpha = 0.10f)
     return this.border(0.5.dp, color, shape)
 }
 
@@ -124,9 +124,9 @@ fun Modifier.contentCard(shape: RoundedCornerShape, selected: Boolean = false): 
     val dark = LocalDarkTheme.current
     val fill by animateColorAsState(
         targetValue = when {
-            selected && dark -> BrandColors.Blue.copy(alpha = 0.12f)
+            selected && dark -> BrandColors.Red.copy(alpha = 0.12f)
             // Light cards sit on an elevation shadow, so their fill must be opaque.
-            selected -> BrandColors.BlueLight.copy(alpha = 0.10f).compositeOver(Color.White)
+            selected -> BrandColors.RedLight.copy(alpha = 0.10f).compositeOver(Color.White)
             dark -> Color.White.copy(alpha = 0.055f)
             else -> Color.White
         },
@@ -137,7 +137,7 @@ fun Modifier.contentCard(shape: RoundedCornerShape, selected: Boolean = false): 
         targetValue = when {
             selected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
             dark -> Color.White.copy(alpha = 0.08f)
-            else -> BrandColors.BlueLight.copy(alpha = 0.07f)
+            else -> BrandColors.RedLight.copy(alpha = 0.07f)
         },
         animationSpec = tween(220),
         label = "cardEdge"
@@ -176,7 +176,7 @@ fun AmbientBackground(
         label = "ambient"
     )
     val base = if (dark) Color.Black else Color(0xFFF7F9FD)
-    val glow = BrandColors.BlueGlow
+    val glow = BrandColors.RedGlow
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -200,7 +200,7 @@ fun AmbientBackground(
                 )
                 drawRect(
                     brush = Brush.radialGradient(
-                        colors = listOf(Color(0xFF0062CC).copy(alpha = (if (dark) 0.28f else 0.07f) * intensity), Color.Transparent),
+                        colors = listOf(BrandColors.RedDeep.copy(alpha = (if (dark) 0.28f else 0.07f) * intensity), Color.Transparent),
                         center = Offset(w * 0.55f, h * 0.5f),
                         radius = w * 0.9f
                     )

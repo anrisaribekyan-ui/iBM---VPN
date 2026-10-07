@@ -43,13 +43,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.v2ray.ang.R
 import com.v2ray.ang.dto.GroupMapItem
@@ -92,6 +97,18 @@ fun MainServerSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    // iBM: a hard fling toward the top of the list used to hand its leftover velocity to the
+    // sheet, which dragged down and snapped back (visible shaking). Leftover fling scroll and
+    // velocity stop here; a finger drag still reaches the sheet, so swipe-to-close keeps working.
+    val listFlingStopsAtSheet = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset =
+                if (source == NestedScrollSource.SideEffect) Offset(0f, available.y) else Offset.Zero
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity =
+                Velocity(0f, available.y)
+        }
+    }
     val scope = rememberCoroutineScope()
     val hazeState = rememberHazeState()
     val density = LocalDensity.current
@@ -167,7 +184,9 @@ fun MainServerSheet(
                 if (groups.isNotEmpty()) {
                     HorizontalPager(
                         state = pagerState,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(listFlingStopsAtSheet),
                         userScrollEnabled = true,
                         beyondViewportPageCount = 1,
                         key = { page -> groups.getOrNull(page)?.id ?: "group-page-$page" }

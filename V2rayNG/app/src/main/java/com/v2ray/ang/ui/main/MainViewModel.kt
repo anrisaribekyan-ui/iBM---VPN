@@ -497,9 +497,14 @@ class MainViewModel(
                 if (forceRefresh) {
                     cacheMutex.withLock { groupDataCache.clear() }
                 }
-                val groups = dataSource.getSubscriptions().map {
-                    GroupMapItem(id = it.guid, remarks = it.subscription.remarks)
-                }
+                // iBM: hide the internal "Default" group while it holds no servers, so a user with a
+                // single subscription sees no group tab strip at all (the strip shows only for 2+ groups).
+                val groups = dataSource.getSubscriptions()
+                    .filterNot {
+                        it.guid == AppConfig.DEFAULT_SUBSCRIPTION_ID &&
+                            dataSource.getServerGuidList(it.guid).isEmpty()
+                    }
+                    .map { GroupMapItem(id = it.guid, remarks = it.subscription.remarks) }
                 val selectedGroup = resolveSelectedGroup(groups)
                 val validIds = groups.mapTo(HashSet()) { it.id }
                 groupUiFlows.keys.removeAll { it !in validIds }

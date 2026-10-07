@@ -656,7 +656,8 @@ object AngConfigManager {
         }
         val uri = URI(Utils.fixIllegalUrl(url))
         val subItem = SubscriptionItem()
-        subItem.remarks = uri.fragment ?: "import sub"
+        // iBM: name an unnamed subscription after its host (e.g. "anrishka.online") instead of "import sub"
+        subItem.remarks = uri.fragment ?: uri.host?.removePrefix("www.") ?: "import sub"
         subItem.url = url
         MmkvManager.encodeSubscription("", subItem)
         return 1

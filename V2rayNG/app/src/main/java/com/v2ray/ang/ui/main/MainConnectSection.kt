@@ -219,7 +219,7 @@ private fun ConnectButton(
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                BrandColors.BlueGlow.copy(alpha = 0.55f * activeAmount * glowPulse),
+                                BrandColors.RedGlow.copy(alpha = 0.55f * activeAmount * glowPulse),
                                 Color.Transparent
                             ),
                             center = center,
@@ -235,7 +235,7 @@ private fun ConnectButton(
                 if (activeAmount > 0f) {
                     drawCircle(
                         brush = Brush.linearGradient(
-                            colors = listOf(BrandColors.Blue, BrandColors.BlueDeep),
+                            colors = listOf(BrandColors.Red, BrandColors.RedDeep),
                             start = Offset(0f, 0f),
                             end = Offset(size.width, size.height)
                         ),

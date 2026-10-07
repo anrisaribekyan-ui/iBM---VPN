@@ -43,33 +43,33 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 // ---------------------------------------------------------------------------------------------
-// iBM design tokens: white + iOS blue, Apple-style neutrals.
+// iBM design tokens: black base, white text, red accent.
 // ---------------------------------------------------------------------------------------------
 
-/** Brand accents (iOS blue family) plus latency colours. */
+/** Brand accents (red family) plus latency colours. */
 object BrandColors {
-    val Blue = Color(0xFF0A84FF)         // primary accent (dark): iOS system blue, dark variant
-    val BlueDeep = Color(0xFF0062CC)     // pressed / gradient end
-    val BlueLight = Color(0xFF007AFF)    // primary accent on light backgrounds: iOS system blue
-    val BlueGlow = Color(0xFF5AC8FA)     // ambient glow: iOS system sky
-    val BluePale = Color(0xFFE5F1FF)     // pale blue container
+    val Red = Color(0xFFFF3040)          // primary accent on black
+    val RedDeep = Color(0xFFB0101C)      // pressed / gradient end
+    val RedLight = Color(0xFFE0182A)     // primary accent on light backgrounds
+    val RedGlow = Color(0xFFFF4D5A)      // ambient glow
+    val RedPale = Color(0xFFFFE5E7)      // pale red container
     val Green = Color(0xFF32D74B)        // good latency
     val Amber = Color(0xFFFFB340)        // medium latency
 }
 
 private val LightColor = lightColorScheme(
-    primary = BrandColors.BlueLight,
+    primary = BrandColors.RedLight,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFE5F1FF),
-    onPrimaryContainer = Color(0xFF003A80),
-    secondary = BrandColors.BlueLight,
+    primaryContainer = Color(0xFFFFE5E7),
+    onPrimaryContainer = Color(0xFF5C0008),
+    secondary = BrandColors.RedLight,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE5F1FF),
-    onSecondaryContainer = Color(0xFF003A80),
-    tertiary = Color(0xFF5AC8FA),
-    onTertiary = Color(0xFF00334D),
-    tertiaryContainer = Color(0xFFE0F5FF),
-    onTertiaryContainer = Color(0xFF00334D),
+    secondaryContainer = Color(0xFFFFE5E7),
+    onSecondaryContainer = Color(0xFF5C0008),
+    tertiary = Color(0xFF1C1C1E),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFEDEDF0),
+    onTertiaryContainer = Color(0xFF1C1C1E),
     error = Color(0xFFD70015),
     errorContainer = Color(0xFFFFDAD6),
     onError = Color.White,
@@ -78,13 +78,13 @@ private val LightColor = lightColorScheme(
     onBackground = Color(0xFF000000),
     surface = Color.White,
     onSurface = Color(0xFF000000),
-    surfaceVariant = Color(0xFFE5EDF7),
-    onSurfaceVariant = Color(0xFF5F6B7A),
+    surfaceVariant = Color(0xFFF0F0F2),
+    onSurfaceVariant = Color(0xFF6C6C72),
     outline = Color(0xFFC6C6C8),
     outlineVariant = Color(0xFFE5E5EA),
     inverseSurface = Color(0xFF1C1C1E),
     inverseOnSurface = Color(0xFFF2F2F7),
-    inversePrimary = BrandColors.Blue,
+    inversePrimary = BrandColors.Red,
     scrim = Color.Black,
     surfaceTint = Color.Transparent,
     surfaceBright = Color.White,
@@ -92,38 +92,38 @@ private val LightColor = lightColorScheme(
     surfaceContainerLowest = Color.White,
     surfaceContainerLow = Color.White,
     surfaceContainer = Color.White,
-    surfaceContainerHigh = Color(0xFFF7F9FC),
-    surfaceContainerHighest = Color(0xFFEAF0F8),
+    surfaceContainerHigh = Color(0xFFF7F7F8),
+    surfaceContainerHighest = Color(0xFFEDEDF0),
 )
 
 private val DarkColor = darkColorScheme(
-    primary = BrandColors.Blue,
+    primary = BrandColors.Red,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFF0A2A4D),
-    onPrimaryContainer = Color(0xFFD6E9FF),
-    secondary = BrandColors.Blue,
+    primaryContainer = Color(0xFF3A0A10),
+    onPrimaryContainer = Color(0xFFFFDADC),
+    secondary = BrandColors.Red,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFF0A2A4D),
-    onSecondaryContainer = Color(0xFFD6E9FF),
-    tertiary = Color(0xFF64D2FF),
+    secondaryContainer = Color(0xFF3A0A10),
+    onSecondaryContainer = Color(0xFFFFDADC),
+    tertiary = Color.White,
     onTertiary = Color.Black,
-    tertiaryContainer = Color(0xFF12303F),
-    onTertiaryContainer = Color(0xFFD6F2FF),
+    tertiaryContainer = Color(0xFF2C2C2E),
+    onTertiaryContainer = Color.White,
     error = Color(0xFFFF6961),
     errorContainer = Color(0xFF5C0A0A),
     onError = Color.Black,
     onErrorContainer = Color(0xFFFFDAD6),
     background = Color.Black,
-    onBackground = Color(0xFFF5F5F7),
+    onBackground = Color.White,
     surface = Color.Black,
-    onSurface = Color(0xFFF5F5F7),
+    onSurface = Color.White,
     surfaceVariant = Color(0xFF1C1C1E),
     onSurfaceVariant = Color(0xFF8E8E93),
     outline = Color(0xFF48484A),
     outlineVariant = Color(0xFF2C2C2E),
     inverseSurface = Color(0xFFF5F5F7),
     inverseOnSurface = Color.Black,
-    inversePrimary = BrandColors.BlueLight,
+    inversePrimary = BrandColors.RedLight,
     scrim = Color.Black,
     surfaceTint = Color.Transparent,
     surfaceBright = Color(0xFF2C2C2E),
@@ -138,8 +138,8 @@ private val DarkColor = darkColorScheme(
 // Semantic Colors
 val colorPing = BrandColors.Green
 val colorPingRed = Color(0xFFFF453A)
-val colorConfigType = BrandColors.Blue
-val colorFabActive = BrandColors.Blue
+val colorConfigType = BrandColors.Red
+val colorFabActive = BrandColors.Red
 val colorFabInactiveLight = Color(0xFFD1D1D6)
 val colorFabInactiveDark = Color(0xFF2C2C2E)
 val dividerColorLight = Color(0x1F3C3C43) // iOS separator, light
@@ -202,8 +202,8 @@ val AppShapes = Shapes(
 
 // ---------------------------------------------------------------------------------------------
 
-/** iBM branding: light white-blue theme by default ("0" system, "1" light, "2" dark), dynamic colors off. */
-const val DEFAULT_UI_MODE_NIGHT = "1"
+/** iBM branding: black-red theme by default ("0" system, "1" light, "2" dark), dynamic colors off. */
+const val DEFAULT_UI_MODE_NIGHT = "2"
 const val DEFAULT_DYNAMIC_COLOR = false
 
 object ThemeManager {
