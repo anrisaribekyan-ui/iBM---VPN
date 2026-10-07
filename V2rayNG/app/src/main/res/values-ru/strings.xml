@@ -571,6 +571,8 @@
     <string name="ibm_auto_group_fastest_desc">Сам выбирает сервер с наименьшей задержкой</string>
     <string name="ibm_auto_group_balance">⚖️ Баланс</string>
     <string name="ibm_auto_group_balance_desc">Поочерёдно через все серверы</string>
+    <string name="ibm_about_developer_label">Разработчик</string>
+    <string name="ibm_about_developer_name">Анри Егорович</string>
     <string name="quick_ru_bypass_on">Российские сайты — напрямую</string>
     <string name="quick_ru_bypass_off">Весь трафик через VPN</string>
     <string name="quick_app_vpn">VPN для приложений</string>
