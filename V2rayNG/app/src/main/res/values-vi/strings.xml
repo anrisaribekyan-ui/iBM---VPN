@@ -561,6 +561,10 @@
 
     <!-- iBM quick settings -->
     <string name="quick_ru_bypass">Bypass .ru</string>
+    <string name="ibm_auto_group_fastest">⚡ Auto (fastest)</string>
+    <string name="ibm_auto_group_fastest_desc">Picks the server with the lowest ping</string>
+    <string name="ibm_auto_group_balance">⚖️ Balance</string>
+    <string name="ibm_auto_group_balance_desc">Rotates across all servers</string>
     <string name="quick_ru_bypass_on">Russian sites go direct</string>
     <string name="quick_ru_bypass_off">All traffic through VPN</string>
     <string name="quick_app_vpn">VPN for apps</string>

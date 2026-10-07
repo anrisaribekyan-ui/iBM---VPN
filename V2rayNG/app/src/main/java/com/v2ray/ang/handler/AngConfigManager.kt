@@ -3,7 +3,9 @@ package com.v2ray.ang.handler
 import android.content.Context
 import android.graphics.Bitmap
 import android.text.TextUtils
+import com.v2ray.ang.AngApplication
 import com.v2ray.ang.AppConfig
+import com.v2ray.ang.R
 import com.v2ray.ang.core.CoreConfigManager
 import com.v2ray.ang.dto.SubscriptionUpdateResult
 import com.v2ray.ang.dto.UrlContentRequest
@@ -525,6 +527,7 @@ object AngConfigManager {
 
             val count = parseConfigViaSub(configText, it.guid, false)
             if (count > 0) {
+                ensureAutoGroups(it.guid)
                 it.subscription.lastUpdated = System.currentTimeMillis()
                 MmkvManager.encodeSubscription(it.guid, it.subscription)
                 LogUtil.i(AppConfig.TAG, "Subscription updated: ${it.subscription.remarks}, $count configs")
@@ -540,6 +543,48 @@ object AngConfigManager {
             LogUtil.e(AppConfig.TAG, "Failed to update config via subscription", e)
             return SubscriptionUpdateResult(failureCount = 1)
         }
+    }
+
+    /**
+     * iBM: on the first successful update of a subscription, add two policy groups
+     * on top of its list, like Hiddify's "lowest" and "balance":
+     * "Авто" picks the server with the lowest ping, "Баланс" rotates across all servers.
+     * Created only once per subscription, so a user who deletes them won't get them back.
+     * Group profiles survive later subscription refreshes (see MmkvManager.saveServerProfiles).
+     */
+    private fun ensureAutoGroups(subId: String) {
+        val flagKey = "ibm_auto_groups_$subId"
+        if (MmkvManager.decodeSettingsBool(flagKey, false)) return
+        try {
+            val ctx = AppLocaleManager.localizedContext(AngApplication.application)
+            // encodeServerConfig inserts at index 0, so add the balance group first to keep "Auto" on top.
+            // Policy group type index follows R.array.policy_group_type: 0 = leastPing, 3 = roundRobin.
+            createAutoGroup(
+                subId, type = "3",
+                remarks = ctx.getString(R.string.ibm_auto_group_balance),
+                description = ctx.getString(R.string.ibm_auto_group_balance_desc)
+            )
+            createAutoGroup(
+                subId, type = "0",
+                remarks = ctx.getString(R.string.ibm_auto_group_fastest),
+                description = ctx.getString(R.string.ibm_auto_group_fastest_desc)
+            )
+            MmkvManager.encodeSettings(flagKey, true)
+        } catch (e: Exception) {
+            LogUtil.e(AppConfig.TAG, "Failed to create auto groups for subscription $subId", e)
+        }
+    }
+
+    private fun createAutoGroup(subId: String, type: String, remarks: String, description: String) {
+        val group = ProfileItem.create(EConfigType.POLICYGROUP)
+        group.remarks = remarks
+        group.description = description
+        group.subscriptionId = subId
+        group.policyGroupSubscriptionId = subId
+        group.policyGroupType = type
+        group.policyGroupFilter = ""
+        group.policyGroupTestOutbounds = true
+        MmkvManager.encodeServerConfig("", group)
     }
 
     /**
